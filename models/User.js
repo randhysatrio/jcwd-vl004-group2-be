@@ -1,5 +1,6 @@
 const sequelize = require('../configs/sequelize');
 const { DataTypes } = require('sequelize');
+const Address = require('./Address');
 
 const User = sequelize.define('user', {
   name: {
@@ -33,6 +34,14 @@ const User = sequelize.define('user', {
   password: {
     type: DataTypes.STRING(1024),
   },
+  phone_number: {
+    type: DataTypes.INTEGER,
+    validate: {
+      isNumeric: {
+        msg: 'Only numbers is allowed',
+      },
+    },
+  },
   profile_picture: {
     type: DataTypes.STRING,
     // changed later definitely!
@@ -63,5 +72,8 @@ const User = sequelize.define('user', {
     type: DataTypes.STRING,
   },
 });
+
+User.hasMany(Address);
+Address.belongsTo(User);
 
 module.exports = User;
