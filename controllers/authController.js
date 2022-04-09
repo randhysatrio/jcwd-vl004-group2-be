@@ -37,11 +37,11 @@ module.exports = {
         to: `${email}`,
         subject: 'Heizen Berg Co. Account Verification',
         html: `
-          <p>Hello, ${name}!</p>
+          <p>Hello, ${profile.displayName}!</p>
           <br/>
-          <p>Thank you for joining Heizen Berg Co.!</p>
+          <p>Thank you for joining Heizen Berg Co.</p>
           <p>Please verify your account by clicking the link bellow</p>
-          <a href="http://localhost:3000/verify/${verificationToken}">Click Me</a>
+          <a href="http://localhost:3000/verify/${verificationToken}">Verify My Account</a>
           <br/>
           <p>Regards, </p>
           <p><b>The Heizen Berg Co. Admin Team</b></p>`,
@@ -108,6 +108,10 @@ module.exports = {
 
       const userData = await User.findOne({ where: { email } });
 
+      if (!userData) {
+        return res.send({ userNotFound: 'This email is not registered!' });
+      }
+
       const token = createPasswordToken({ email });
 
       await transporter.sendMail({
@@ -148,9 +152,11 @@ module.exports = {
   },
   verify: async (req, res) => {
     try {
-      await User.update({ is_verified: 'verified' }, { where: { id: req.user.id } });
-
       const userData = await User.findByPk(req.user.id);
+
+      userData.is_verified = 'verified';
+
+      await userData.save();
 
       const token = createToken({
         id: userData.id,

@@ -45,9 +45,9 @@ passport.use(
           html: `
             <p>Hello, ${profile.displayName}!</p>
             <br/>
-            <p>Thank you for joining Heizen Berg Co.!</p>
+            <p>Thank you for joining Heizen Berg Co.</p>
             <p>Please verify your account by clicking the link bellow</p>
-            <a href="http://localhost:3000/verify/${verificationToken}">Click Me</a>
+            <a href="http://localhost:3000/verify/${verificationToken}">Verify My Account</a>
             <br/>
             <p>Regards, </p>
             <p><b>The Heizen Berg Co. Admin Team</b></p>`,
