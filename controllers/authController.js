@@ -37,7 +37,7 @@ module.exports = {
         to: `${email}`,
         subject: 'Heizen Berg Co. Account Verification',
         html: `
-          <p>Hello, ${profile.displayName}!</p>
+          <p>Hello, ${name}!</p>
           <br/>
           <p>Thank you for joining Heizen Berg Co.</p>
           <p>Please verify your account by clicking the link bellow</p>
