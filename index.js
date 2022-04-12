@@ -37,10 +37,11 @@ app.use(passport.session());
   }
 })();
 
-const { authRouter, addressRouter, categoryRouter } = require('./routers');
+const { authRouter, addressRouter, categoryRouter, deliveryOptionRouter } = require('./routers');
 
 app.use('/auth', authRouter);
 app.use('/address', addressRouter);
 app.use('/category', categoryRouter);
+app.use('/deliveryoption', deliveryOptionRouter);
 
 app.listen(5000, () => console.log('API running at port 5000'));

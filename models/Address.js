@@ -1,6 +1,8 @@
 const sequelize = require('../configs/sequelize');
 const { DataTypes } = require('sequelize');
 
+const InvoiceHeader = require('./InvoiceHeader');
+
 const Address = sequelize.define(
   'address',
   {
@@ -34,5 +36,8 @@ const Address = sequelize.define(
     paranoid: true,
   }
 );
+
+Address.hasMany(InvoiceHeader);
+InvoiceHeader.belongsTo(Address);
 
 module.exports = Address;

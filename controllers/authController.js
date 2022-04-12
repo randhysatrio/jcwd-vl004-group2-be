@@ -40,7 +40,8 @@ module.exports = {
           <p>Hello, ${name}!</p>
           <br/>
           <p>Thank you for joining Heizen Berg Co.</p>
-          <p>Please verify your account by clicking the link bellow</p>
+          <P>We are glad to have you as part of the Heizen Berg. community!</p>
+          <p>Please verify your account by clicking the link below:</p>
           <a href="http://localhost:3000/verify/${verificationToken}">Verify My Account</a>
           <br/>
           <p>Regards, </p>
@@ -133,7 +134,6 @@ module.exports = {
 
       res.status(200).send({ sent: true });
     } catch (err) {
-      console.log(err);
       res.status(500).send(err);
     }
   },

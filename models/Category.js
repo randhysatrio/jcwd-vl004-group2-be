@@ -1,6 +1,8 @@
 const sequelize = require('../configs/sequelize');
 const { DataTypes } = require('sequelize');
 
+const Product = require('./Product');
+
 const Category = sequelize.define(
   'category',
   {
@@ -13,5 +15,8 @@ const Category = sequelize.define(
     paranoid: true,
   }
 );
+
+Category.hasMany(Product);
+Product.belongsTo(Category);
 
 module.exports = Category;
