@@ -37,7 +37,12 @@ app.use(passport.session());
   }
 })();
 
-const { authRouter, addressRouter, categoryRouter, deliveryOptionRouter } = require('./routers');
+const {
+  authRouter,
+  addressRouter,
+  categoryRouter,
+  deliveryOptionRouter,
+} = require('./routers');
 
 app.use('/auth', authRouter);
 app.use('/address', addressRouter);
