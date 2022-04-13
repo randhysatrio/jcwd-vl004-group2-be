@@ -73,7 +73,7 @@ const Product = sequelize.define(
       allowNull: false,
     },
     image: DataTypes.STRING,
-    appearence: {
+    appearance: {
       type: DataTypes.STRING,
       allowNull: false,
     },
