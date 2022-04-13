@@ -1,6 +1,5 @@
 const sequelize = require('../configs/sequelize');
 const { DataTypes } = require('sequelize');
-const Product = require('./Product');
 
 const Admin = sequelize.define('admin', {
   name: {
@@ -19,8 +18,5 @@ const Admin = sequelize.define('admin', {
   },
   profile_picture: DataTypes.STRING,
 });
-
-Admin.hasMany(Product);
-Product.belongsTo(Admin);
 
 module.exports = Admin;
