@@ -23,12 +23,16 @@ module.exports = {
   },
   query: async (req, res) => {
     try {
-      const { category, limit, offset, appearance, sort, gte, lte, between } = req.body;
+      const { name, category, limit, offset, appearance, sort, gte, lte, between } = req.body;
 
       const query = {
         limit,
         offset,
       };
+
+      if (name) {
+        query.where = { ...query.where, name: { [Op.substring]: name } };
+      }
 
       if (category) {
         query.where = { ...query.where, categoryId: category };
