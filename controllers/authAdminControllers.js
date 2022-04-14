@@ -4,20 +4,6 @@ const { createToken } = require('../configs/jwtadmin');
 const transporter = require('../configs/nodemailer');
 
 module.exports = {
-  addAdmin: async (req, res) => {
-    try {
-      const response = await Admin.create({
-        name: 'asep',
-        email: 'udidesign3r@gmail.com',
-        username: 'asrud',
-        password: '123456',
-      });
-
-      res.status(200).send({ data: response, message: response.message });
-    } catch (error) {
-      res.status(500).send({ message: error.message });
-    }
-  },
   getAdmin: async (req, res) => {
     try {
       let { email } = req.admin;
@@ -118,7 +104,7 @@ module.exports = {
   changePassword: async (req, res) => {
     try {
       const { email } = req.admin;
-      let { password } = req.body.password;
+      let { password } = req.body;
 
       // Hashing
       password = Crypto.createHmac('sha1', 'hash123')

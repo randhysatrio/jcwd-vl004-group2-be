@@ -10,6 +10,11 @@ const Admin = sequelize.define('admin', {
     type: DataTypes.STRING,
     allowNull: false,
     unique: true,
+    validate: {
+      isEmail: {
+        msg: 'Invalid email',
+      },
+    },
   },
   username: DataTypes.STRING,
   password: {
