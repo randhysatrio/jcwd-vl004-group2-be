@@ -3,6 +3,7 @@ const addressRouter = require('./addressRouter');
 const categoryRouter = require('./categoryRouter');
 const deliveryOptionRouter = require('./deliveryOptionRouter');
 const authAdminRouters = require('./authAdminRouters');
+const productRouter = require('./productRouter');
 
 module.exports = {
   authAdminRouters,
@@ -10,4 +11,5 @@ module.exports = {
   addressRouter,
   categoryRouter,
   deliveryOptionRouter,
+  productRouter,
 };

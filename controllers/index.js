@@ -3,6 +3,7 @@ const addressController = require('./addressController');
 const categoryController = require('./categoryController');
 const deliveryOptionController = require('./deliveryOptionController');
 const authAdminControllers = require('./authAdminControllers');
+const productController = require('./productController');
 
 module.exports = {
   authAdminControllers,
@@ -10,4 +11,5 @@ module.exports = {
   addressController,
   categoryController,
   deliveryOptionController,
+  productController,
 };
