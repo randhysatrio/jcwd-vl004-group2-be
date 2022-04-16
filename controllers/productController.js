@@ -58,16 +58,13 @@ module.exports = {
         query.where = { ...query.where, price_sell: { [Op.between]: between } };
       }
 
-      const products = await Product.findAll({
+      const { count, rows } = await Product.findAndCountAll({
         ...query,
         include: Category,
       });
 
-      const length = await Product.count(({ where } = query));
-
-      res.status(200).send({ products, length });
+      res.status(200).send({ products: rows, length: count });
     } catch (err) {
-      console.log(err);
       res.status(500).send(err);
     }
   },
