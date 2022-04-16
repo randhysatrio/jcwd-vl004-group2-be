@@ -58,20 +58,17 @@ module.exports = {
         query.where = { ...query.where, price_sell: { [Op.between]: between } };
       }
 
-      const products = await Product.findAll({
+      const { count, rows } = await Product.findAndCountAll({
         ...query,
         include: Category,
       });
 
-      const length = await Product.count(({ where } = query));
-
-      res.status(200).send({ products, length });
+      res.status(200).send({ products: rows, length: count });
     } catch (err) {
-      console.log(err);
       res.status(500).send(err);
     }
   },
-  appearence: async (req, res) => {
+  appearance: async (req, res) => {
     try {
       const appearances = await Product.findAll({
         attributes: ['appearance'],
@@ -79,6 +76,15 @@ module.exports = {
       });
 
       res.status(200).send(appearances);
+    } catch (err) {
+      res.status(500).send(err);
+    }
+  },
+  getProductById: async (req, res) => {
+    try {
+      const product = await Product.findByPk(req.params.id, { include: Category });
+
+      res.status(200).send(product);
     } catch (err) {
       res.status(500).send(err);
     }
