@@ -121,6 +121,7 @@ module.exports = {
           image: req.body.image,
           appearance: req.body.appearance,
           categoryId: req.body.categoryId,
+          stock_in_unit: req.body.stock * req.body.volume,
         },
         {
           where: { id: req.params.id },
