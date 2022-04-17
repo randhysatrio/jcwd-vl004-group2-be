@@ -1,12 +1,12 @@
-const sequelize = require('../configs/sequelize');
-const { DataTypes } = require('sequelize');
+const sequelize = require("../configs/sequelize");
+const { DataTypes } = require("sequelize");
 
-const Cart = require('./Cart');
-const InvoiceItem = require('./InvoiceItem');
-const UpdateLog = require('./UpdateLog');
+const Cart = require("./Cart");
+const InvoiceItem = require("./InvoiceItem");
+const UpdateLog = require("./UpdateLog");
 
 const Product = sequelize.define(
-  'product',
+  "product",
   {
     name: {
       type: DataTypes.STRING,
@@ -17,7 +17,7 @@ const Product = sequelize.define(
       allowNull: false,
       validate: {
         isNumeric: {
-          msg: 'Only number is allowed',
+          msg: "Only number is allowed",
         },
       },
     },
@@ -26,7 +26,7 @@ const Product = sequelize.define(
       allowNull: false,
       validate: {
         isNumeric: {
-          msg: 'Only number is allowed',
+          msg: "Only number is allowed",
         },
       },
     },
@@ -35,7 +35,7 @@ const Product = sequelize.define(
       allowNull: false,
       validate: {
         isNumeric: {
-          msg: 'Only number is allowed',
+          msg: "Only number is allowed",
         },
       },
     },
@@ -44,8 +44,8 @@ const Product = sequelize.define(
       allowNull: false,
       validate: {
         isIn: {
-          args: [['ml', 'g']],
-          msg: 'Only ml and g is allowed',
+          args: [["ml", "g"]],
+          msg: "Only ml and g is allowed",
         },
       },
     },
@@ -54,7 +54,7 @@ const Product = sequelize.define(
       allowNull: false,
       validate: {
         isNumeric: {
-          msg: 'Only number is allowed',
+          msg: "Only number is allowed",
         },
       },
     },
@@ -64,7 +64,7 @@ const Product = sequelize.define(
       defaultValue: 0,
       validate: {
         isNumeric: {
-          msg: 'Only number is allowed',
+          msg: "Only number is allowed",
         },
       },
     },
@@ -83,13 +83,13 @@ const Product = sequelize.define(
   }
 );
 
-Product.hasMany(Cart, { onDelete: 'CASCADE' });
+Product.hasMany(Cart, { onDelete: "CASCADE" });
 Cart.belongsTo(Product);
 
 Product.hasMany(InvoiceItem);
 InvoiceItem.belongsTo(Product);
 
-Product.hasMany(UpdateLog, { onDelete: 'CASCADE' });
+Product.hasMany(UpdateLog, { onDelete: "CASCADE" });
 UpdateLog.belongsTo(Product);
 
 module.exports = Product;
