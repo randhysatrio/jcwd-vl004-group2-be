@@ -129,7 +129,7 @@ module.exports = {
       );
       res.status(200).send("Product edited successfully!");
     } catch (error) {
-      res.status(500).send(err);
+      res.status(500).send(error);
     }
   },
 
