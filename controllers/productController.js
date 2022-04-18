@@ -27,7 +27,6 @@ module.exports = {
 
       const query = {
         limit,
-        offset,
       };
 
       if (name) {
@@ -56,6 +55,10 @@ module.exports = {
 
       if (between) {
         query.where = { ...query.where, price_sell: { [Op.between]: between } };
+      }
+
+      if (offset) {
+        query.offset = offset;
       }
 
       const { count, rows } = await Product.findAndCountAll({
