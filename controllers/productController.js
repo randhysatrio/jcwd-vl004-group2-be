@@ -132,7 +132,6 @@ module.exports = {
       res.status(500).send(error);
     }
   },
-
   delete: async (req, res) => {
     try {
       await Product.destroy({ where: { id: req.params.id } });
