@@ -140,4 +140,14 @@ module.exports = {
       res.status(200).send("Product deleted successfully!");
     }
   },
+  restore: async (req, res) => {
+    try {
+      await Product.restore({
+        where: { id: req.params.id },
+      });
+      res.status(200).send("Product recovered successfully!");
+    } catch (error) {
+      res.status(500).send(error);
+    }
+  },
 };
