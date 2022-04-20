@@ -1,6 +1,6 @@
-const Product = require("../models/Product");
-const User = require("../models/User");
-const { Op } = require("sequelize");
+const Product = require('../models/Product');
+const User = require('../models/User');
+const { Op } = require('sequelize');
 
 module.exports = {
   get: async (req, res) => {
@@ -43,14 +43,14 @@ module.exports = {
     try {
       await Address.destroy({ where: { id: req.params.id } });
 
-      res.status(200).send("Address deleted successfully!");
+      res.status(200).send('Address deleted successfully!');
     } catch (err) {
       res.status(200).send(err);
     }
   },
   query: async (req, res) => {
     try {
-      console.log("test");
+      console.log('test');
       const { name, active, limit } = req.body;
 
       const query = {
@@ -71,6 +71,17 @@ module.exports = {
     } catch (err) {
       // console.log(err) to inform the error in the console
       console.log(err);
+      res.status(500).send(err);
+    }
+  },
+  findById: async (req, res) => {
+    try {
+      const { id } = req.user;
+
+      const user = await User.findByPk(id);
+
+      res.status(200).send(user);
+    } catch (err) {
       res.status(500).send(err);
     }
   },
