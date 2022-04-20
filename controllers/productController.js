@@ -1,12 +1,48 @@
 const { Op } = require("sequelize");
 const Product = require("../models/Product");
 const Category = require("../models/Category");
+const multer = require("multer");
+const path = require("path");
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "Images");
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + path.extname(file.originalname));
+  },
+});
+
+const upload = multer({
+  storage: storage,
+  limits: { fileSize: "1000000" },
+  fileFilter: (req, file, cb) => {
+    const fileTypes = /jpeg|jpg|png|gif/;
+    const mimeType = fileTypes.test(file.mimetype);
+    const extname = fileTypes.test(path.extname(file.originalname));
+
+    if (mimeType && extname) {
+      return cb(null, true);
+    }
+    cb("Give proper files formate to upload");
+  },
+}).single("image");
 
 module.exports = {
+  upload,
   add: async (req, res) => {
     try {
       await Product.create({
-        ...req.body,
+        name: req.body.name,
+        price_buy: req.body.price_buy,
+        price_sell: req.body.price_sell,
+        stock: req.body.stock,
+        unit: req.body.unit,
+        volume: req.body.volume,
+        description: req.body.description,
+        image: req.file.path,
+        appearance: req.body.appearance,
+        categoryId: req.body.categoryId,
         stock_in_unit: req.body.stock * req.body.volume,
       });
 

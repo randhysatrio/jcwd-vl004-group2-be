@@ -37,6 +37,8 @@ app.use(passport.session());
   }
 })();
 
+app.use("/Images", express.static("./Images"));
+
 const {
   authRouter,
   authAdminRouters,
