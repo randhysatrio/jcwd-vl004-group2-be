@@ -38,6 +38,7 @@ app.use(passport.session());
 })();
 
 app.use("/Images", express.static("./Images"));
+// app.use(express.static("public")); // Public
 
 const {
   authRouter,
