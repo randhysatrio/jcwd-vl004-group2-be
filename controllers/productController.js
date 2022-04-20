@@ -149,4 +149,27 @@ module.exports = {
       res.status(500).send(error);
     }
   },
+  search: async (req, res) => {
+    try {
+      const { q } = req.query;
+
+      const product = await Product.findAll({
+        where: { name: { [Op.like]: "%" + q + "%" } },
+      });
+      res.status(200).send(product);
+    } catch (error) {
+      res.status(500).send(error);
+    }
+  },
+  sort: async (req, res) => {
+    try {
+      const { q } = req.query;
+      const product = await Product.findAll({
+        order: [["price_buy", q]],
+      });
+      res.status(200).send(product);
+    } catch (error) {
+      res.status(500).send(error);
+    }
+  },
 };
