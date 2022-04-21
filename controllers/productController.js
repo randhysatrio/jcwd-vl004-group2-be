@@ -191,6 +191,7 @@ module.exports = {
 
       const product = await Product.findAll({
         where: { name: { [Op.like]: "%" + q + "%" } },
+        include: Category,
       });
       res.status(200).send(product);
     } catch (error) {
