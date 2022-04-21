@@ -48,6 +48,7 @@ const {
   deliveryOptionRouter,
   productRouter,
   cartRouter,
+  userRouter,
 } = require("./routers");
 
 app.use("/auth", authRouter);
@@ -57,5 +58,6 @@ app.use("/deliveryoption", deliveryOptionRouter);
 app.use("/admin/auth", authAdminRouters);
 app.use("/product", productRouter);
 app.use("/cart", cartRouter);
+app.use("/user", userRouter);
 
 app.listen(5000, () => console.log("API running at port 5000"));
