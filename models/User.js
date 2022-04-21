@@ -21,7 +21,7 @@ const User = sequelize.define('user', {
     validate: {
       is: {
         args: /^[a-zA-Z0-9._]*$/,
-        msg: 'Only alphanumeric characters, (-), (_), and (.) is allowed',
+        msg: 'Only alphanumeric characters, contain no spaces, (-), (_), and (.) is allowed',
       },
     },
   },
@@ -38,7 +38,13 @@ const User = sequelize.define('user', {
     type: DataTypes.STRING(1024),
   },
   phone_number: {
-    type: DataTypes.STRING(1024),
+    type: DataTypes.STRING,
+    validate: {
+      is: {
+        args: /^(\+62|62)?[\s-]?0?8[1-9]{1}\d{1}[\s-]?\d{4}[\s-]?\d{2,5}$/,
+        msg: 'Please enter a valid phone number',
+      },
+    },
   },
   profile_picture: {
     type: DataTypes.STRING,

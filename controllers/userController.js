@@ -1,6 +1,9 @@
-const Product = require('../models/Product');
+require('dotenv').config();
 const User = require('../models/User');
+const Product = require('../models/Product');
 const { Op } = require('sequelize');
+const fs = require('fs');
+const Crypto = require('crypto');
 
 module.exports = {
   get: async (req, res) => {
@@ -82,6 +85,80 @@ module.exports = {
 
       res.status(200).send(user);
     } catch (err) {
+      res.status(500).send(err);
+    }
+  },
+  updateProfile: async (req, res) => {
+    try {
+      const { id } = req.user;
+
+      const data = JSON.parse(req.body.data);
+
+      const currentData = await User.findByPk(id);
+
+      const dataToUpdate = {};
+
+      for (const key in data) {
+        if (!data[key]) {
+          continue;
+        } else if (data[key] === currentData[key]) {
+          continue;
+        } else {
+          dataToUpdate[key] = data[key];
+        }
+      }
+
+      if (dataToUpdate.username) {
+        const usernamecheck = await User.findOne({ where: { username: dataToUpdate.username } });
+
+        if (usernamecheck) {
+          return res.send({ conflict: true, message: 'This username has already been taken' });
+        }
+      }
+
+      if (req.file) {
+        dataToUpdate.profile_picture = req.file.path;
+      }
+
+      await User.update(dataToUpdate, { where: { id } });
+
+      if (req.file) {
+        fs.unlinkSync(currentData.profile_picture);
+      }
+
+      const updatedData = await User.findByPk(id);
+
+      res.status(200).send({ message: 'Profile updated successfully', user: updatedData });
+    } catch (err) {
+      if (req.file) {
+        fs.unlinkSync(req.file.path);
+      }
+
+      res.status(500).send(err);
+    }
+  },
+  updatePassword: async (req, res) => {
+    try {
+      req.body.password = Crypto.createHmac('SHA256', process.env.CRYPTO_KEY).update(req.body.password).digest('hex');
+      req.body.newPass = Crypto.createHmac('SHA256', process.env.CRYPTO_KEY).update(req.body.newPass).digest('hex');
+
+      const { id } = req.user;
+
+      const { password, newPass } = req.body;
+
+      const currentData = await User.findByPk(id);
+
+      if (currentData.password !== password) {
+        return res.send({ conflict: true, message: 'Please check your current password!' });
+      }
+
+      currentData.password = newPass;
+
+      await currentData.save();
+
+      res.status(200).send('Password changed successfully!');
+    } catch (err) {
+      console.log(err);
       res.status(500).send(err);
     }
   },

@@ -34,4 +34,34 @@ module.exports = {
       //   look for field "image"
     });
   },
+  profileUploader: () => {
+    const storage = multer.diskStorage({
+      destination: (req, file, cb) => {
+        const path = './public/images/profile';
+
+        if (fs.existsSync(path)) {
+          cb(null, path);
+        } else {
+          fs.mkdir(path, { recursive: true }, (err) => cb(null, path));
+        }
+      },
+      filename: (req, file, cb) => {
+        const ext = file.originalname.split('.');
+
+        const name = Date.now() + '.' + ext[ext.length - 1];
+
+        cb(null, name);
+      },
+    });
+
+    const fileFilter = (req, file, cb) => {
+      if (!/\.(jpg|jpeg|png|img|JPG|JPEG|PNG|IMG)/.test(file.originalname)) {
+        return cb(new Error('File type not supported'), false);
+      } else {
+        cb(null, true);
+      }
+    };
+
+    return multer({ storage, fileFilter });
+  },
 };
