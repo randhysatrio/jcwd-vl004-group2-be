@@ -1,8 +1,12 @@
 const router = require("express").Router();
 const { productController } = require("../controllers");
+const { imageProductUploader } = require("../configs/uploader");
 
-
-router.post("/add", productController.upload, productController.add);
+router.post(
+  "/add",
+  imageProductUploader().single("image"),
+  productController.add
+);
 router.get("/all", productController.all);
 router.get("/find/:id", productController.getProductById);
 router.post("/query", productController.query);

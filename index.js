@@ -37,9 +37,6 @@ app.use(passport.session());
   }
 })();
 
-app.use("/Images", express.static("./Images"));
-// app.use(express.static("public")); // Public
-
 const {
   authRouter,
   authAdminRouters,
@@ -51,6 +48,7 @@ const {
   userRouter,
 } = require("./routers");
 
+app.use("/public", express.static("public"));
 app.use("/auth", authRouter);
 app.use("/address", addressRouter);
 app.use("/category", categoryRouter);

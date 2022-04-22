@@ -1,53 +1,29 @@
 const { Op } = require("sequelize");
 const Product = require("../models/Product");
 const Category = require("../models/Category");
-const multer = require("multer");
-const path = require("path");
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "Images");
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname));
-  },
-});
-
-const upload = multer({
-  storage: storage,
-  limits: { fileSize: "1000000" },
-  fileFilter: (req, file, cb) => {
-    const fileTypes = /jpeg|jpg|png|gif/;
-    const mimeType = fileTypes.test(file.mimetype);
-    const extname = fileTypes.test(path.extname(file.originalname));
-
-    if (mimeType && extname) {
-      return cb(null, true);
-    }
-    cb("Give proper files formate to upload");
-  },
-}).single("image");
 
 module.exports = {
-  upload,
   add: async (req, res) => {
     try {
+      console.log(req.file);
+      const productData = JSON.parse(req.body.productData);
       await Product.create({
-        name: req.body.name,
-        price_buy: req.body.price_buy,
-        price_sell: req.body.price_sell,
-        stock: req.body.stock,
-        unit: req.body.unit,
-        volume: req.body.volume,
-        description: req.body.description,
+        name: productData.name,
+        price_buy: productData.price_buy,
+        price_sell: productData.price_sell,
+        stock: productData.stock,
+        unit: productData.unit,
+        volume: productData.volume,
+        description: productData.description,
         image: req.file.path,
-        appearance: req.body.appearance,
-        categoryId: req.body.categoryId,
-        stock_in_unit: req.body.stock * req.body.volume,
+        appearance: productData.appearance,
+        categoryId: productData.categoryId,
+        stock_in_unit: productData.stock * productData.volume,
       });
 
       res.status(201).send("Product created successfully!");
     } catch (err) {
+      console.log(err);
       res.status(500).send(err);
     }
   },
@@ -62,6 +38,7 @@ module.exports = {
   },
   query: async (req, res) => {
     try {
+      console.log("test");
       const {
         name,
         category,
@@ -147,17 +124,17 @@ module.exports = {
     try {
       await Product.update(
         {
-          name: req.body.name,
-          price_buy: req.body.price_buy,
-          price_sell: req.body.price_sell,
-          stock: req.body.stock,
-          unit: req.body.unit,
-          volume: req.body.volume,
-          description: req.body.description,
-          image: req.body.image,
-          appearance: req.body.appearance,
-          categoryId: req.body.categoryId,
-          stock_in_unit: req.body.stock * req.body.volume,
+          name: productData.name,
+          price_buy: productData.price_buy,
+          price_sell: productData.price_sell,
+          stock: productData.stock,
+          unit: productData.unit,
+          volume: productData.volume,
+          description: productData.description,
+          image: productData.image,
+          appearance: productData.appearance,
+          categoryId: productData.categoryId,
+          stock_in_unit: productData.stock * productData.volume,
         },
         {
           where: { id: req.params.id },
@@ -217,28 +194,28 @@ module.exports = {
     let offset;
 
     // filtering by category
-    if (filter !== "" && typeof filter !== "undefined") {
-      const query = filter.categoryId.split(",").map((item) => ({
-        [Op.eq]: item,
-      }));
+    // if (filter !== "" && typeof filter !== "undefined") {
+    //   const query = filter.categoryId.split(",").map((item) => ({
+    //     [Op.eq]: item,
+    //   }));
 
-      paramQuerySQL.where = {
-        categoryId: { [Op.or]: query },
-        // include: Category,
-      };
-    }
+    //   paramQuerySQL.where = {
+    //     categoryId: { [Op.or]: query },
+    //     // include: Category,
+    //   };
+    // }
 
-    // sorting
-    if (sort !== "" && typeof sort !== "undefined") {
-      let query;
-      if (sort.charAt(0) !== "-") {
-        query = [[sort, "ASC"]];
-      } else {
-        query = [[sort.replace("-", ""), "DESC"]];
-      }
+    // // sorting
+    // if (sort !== "" && typeof sort !== "undefined") {
+    //   let query;
+    //   if (sort.charAt(0) !== "-") {
+    //     query = [[sort, "ASC"]];
+    //   } else {
+    //     query = [[sort.replace("-", ""), "DESC"]];
+    //   }
 
-      paramQuerySQL.order = query;
-    }
+    //   paramQuerySQL.order = query;
+    // }
 
     // pagination
     if (page !== "" && typeof page !== "undefined") {
@@ -261,7 +238,7 @@ module.exports = {
     try {
       const data = await Product.findAll(paramQuerySQL);
       if (data) {
-        res.status(200).send(data);
+        res.status(200).json({ data });
       }
     } catch (err) {
       next(err);
