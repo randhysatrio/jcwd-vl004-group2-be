@@ -5,7 +5,6 @@ const Category = require("../models/Category");
 module.exports = {
   add: async (req, res) => {
     try {
-      console.log(req.file);
       const productData = JSON.parse(req.body.productData);
       await Product.create({
         name: productData.name,
@@ -121,6 +120,7 @@ module.exports = {
 
   edit: async (req, res) => {
     try {
+      const productData = JSON.parse(req.body.productData);
       await Product.update(
         {
           name: productData.name,
@@ -130,7 +130,7 @@ module.exports = {
           unit: productData.unit,
           volume: productData.volume,
           description: productData.description,
-          image: productData.image,
+          image: req.file.path,
           appearance: productData.appearance,
           categoryId: productData.categoryId,
           stock_in_unit: productData.stock * productData.volume,
@@ -141,6 +141,7 @@ module.exports = {
       );
       res.status(200).send("Product edited successfully!");
     } catch (error) {
+      console.log(error);
       res.status(500).send(error);
     }
   },
