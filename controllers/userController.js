@@ -1,4 +1,6 @@
+const Product = require("../models/Product");
 const User = require("../models/User");
+const { Op } = require("sequelize");
 
 module.exports = {
   get: async (req, res) => {
@@ -44,6 +46,32 @@ module.exports = {
       res.status(200).send("Address deleted successfully!");
     } catch (err) {
       res.status(200).send(err);
+    }
+  },
+  query: async (req, res) => {
+    try {
+      console.log("test");
+      const { name, active, limit } = req.body;
+
+      const query = {
+        limit,
+      };
+
+      if (name) {
+        query.where = { ...query.where, name: { [Op.substring]: name } };
+      }
+
+      if (active) {
+        query.where = { ...query.where, active: active };
+      }
+
+      const { count, rows } = await User.findAndCountAll({ ...query });
+
+      res.status(200).send({ users: rows, length: count });
+    } catch (err) {
+      // console.log(err) to inform the error in the console
+      console.log(err);
+      res.status(500).send(err);
     }
   },
 };

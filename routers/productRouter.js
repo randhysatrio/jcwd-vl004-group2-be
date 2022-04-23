@@ -14,8 +14,5 @@ router.get("/appearance", productController.appearance);
 router.patch("/edit/:id", productController.edit);
 router.delete("/delete/:id", productController.delete);
 router.post("/restore/:id", productController.restore);
-router.get("/search", productController.search);
-router.get("/sort", productController.sort);
-router.get("/getProducts", productController.getProducts);
 
 module.exports = router;
