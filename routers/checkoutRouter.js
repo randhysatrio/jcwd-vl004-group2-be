@@ -1,13 +1,13 @@
-const routers = require('express').Router();
+const router = require('express').Router();
 const { checkoutController } = require('../controllers');
 const { verifyToken } = require('../configs/jwtuser');
 
-routers.get('/delivery', checkoutController.getDelivery);
-routers.get('/phone/:id', verifyToken, checkoutController.getPhone);
-routers.patch('/phone/edit/:id', verifyToken, checkoutController.editPhone);
-routers.post('/add-address', verifyToken, checkoutController.addAddress);
-routers.patch('/select-address', verifyToken, checkoutController.selectAddress);
-routers.post('/add', verifyToken, checkoutController.addCheckout);
-routers.post('/proof', verifyToken, checkoutController.addProof);
+router.get('/delivery', checkoutController.getDelivery);
+router.get('/phone/:id', verifyToken, checkoutController.getPhone);
+router.patch('/phone/edit/:id', verifyToken, checkoutController.editPhone);
+router.post('/add-address', verifyToken, checkoutController.addAddress);
+router.patch('/select-address', verifyToken, checkoutController.selectAddress);
+router.post('/add', verifyToken, checkoutController.addCheckout);
+router.post('/proof', verifyToken, checkoutController.addProof);
 
-module.exports = routers;
+module.exports = router;

@@ -46,6 +46,7 @@ const {
   productRouter,
   cartRouter,
   userRouter,
+  checkoutRouter,
 } = require('./routers');
 
 app.use('/public', express.static('public'));

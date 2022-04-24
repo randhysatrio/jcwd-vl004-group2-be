@@ -6,7 +6,7 @@ const Address = require('../models/Address');
 const DeliveryOption = require('../models/DeliveryOption');
 const Cart = require('../models/Cart');
 const Product = require('../models/Product');
-const { uploader } = require('../configs/uploader');
+const { uploader } = require('../configs/uploaderPayment');
 const fs = require('fs');
 
 module.exports = {
