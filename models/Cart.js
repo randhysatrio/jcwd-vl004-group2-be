@@ -6,6 +6,16 @@ const Cart = sequelize.define('cart', {
     type: DataTypes.INTEGER,
     allowNull: false,
   },
+  isChecked: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+  },
+  subtotal: {
+    type: DataTypes.VIRTUAL,
+    get() {
+      return this.product?.price_sell * this.quantity;
+    },
+  },
 });
 
 module.exports = Cart;

@@ -38,12 +38,7 @@ const User = sequelize.define('user', {
     type: DataTypes.STRING(1024),
   },
   phone_number: {
-    type: DataTypes.INTEGER,
-    validate: {
-      isNumeric: {
-        msg: 'Only numbers is allowed',
-      },
-    },
+    type: DataTypes.STRING(1024),
   },
   profile_picture: {
     type: DataTypes.STRING,
