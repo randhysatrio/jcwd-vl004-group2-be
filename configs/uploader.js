@@ -1,12 +1,12 @@
-const multer = require("multer");
-const path = require("path");
-const fs = require("fs");
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 
 module.exports = {
   imageProductUploader: () => {
     const storage = multer.diskStorage({
       destination: (req, file, cb) => {
-        const path = "./public/images/products";
+        const path = './public/images/products';
 
         if (fs.existsSync(path)) {
           cb(null, path);
@@ -29,9 +29,9 @@ module.exports = {
         if (mimeType && extname) {
           return cb(null, true);
         }
-        cb("Give proper files formate to upload");
+        cb('Give proper files formate to upload');
       },
-    //   look for field "image"
+      //   look for field "image"
     });
   },
 };
