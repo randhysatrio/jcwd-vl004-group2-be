@@ -11,7 +11,11 @@ router.get("/all", productController.all);
 router.get("/find/:id", productController.getProductById);
 router.post("/query", productController.query);
 router.get("/appearance", productController.appearance);
-router.patch("/edit/:id", productController.edit);
+router.patch(
+  "/edit/:id",
+  imageProductUploader().single("image"),
+  productController.edit
+);
 router.delete("/delete/:id", productController.delete);
 router.post("/restore/:id", productController.restore);
 

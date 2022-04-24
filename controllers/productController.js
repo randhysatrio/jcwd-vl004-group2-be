@@ -1,11 +1,12 @@
-const { Op } = require('sequelize');
-const Product = require('../models/Product');
-const Category = require('../models/Category');
+const { Op } = require("sequelize");
+const Product = require("../models/Product");
+const Category = require("../models/Category");
+const fs = require("fs");
 
 module.exports = {
   add: async (req, res) => {
     try {
-      const productData = JSON.parse(req.body.productData);
+      let productData = JSON.parse(req.body.productData);
       await Product.create({
         name: productData.name,
         price_buy: productData.price_buy,
@@ -117,26 +118,21 @@ module.exports = {
 
   edit: async (req, res) => {
     try {
-      const productData = JSON.parse(req.body.productData);
-      await Product.update(
-        {
-          name: productData.name,
-          price_buy: productData.price_buy,
-          price_sell: productData.price_sell,
-          stock: productData.stock,
-          unit: productData.unit,
-          volume: productData.volume,
-          description: productData.description,
-          image: req.file.path,
-          appearance: productData.appearance,
-          categoryId: productData.categoryId,
-          stock_in_unit: productData.stock * productData.volume,
-        },
-        {
-          where: { id: req.params.id },
-        }
-      );
-      res.status(200).send('Product edited successfully!');
+      let productData = JSON.parse(req.body.productData);
+      let oldData = await Product.findByPk(req.params.id);
+
+      if (req.file) {
+        // edit is different from add need to update the path
+        productData = { ...productData, image: req.file.path };
+      }
+      await Product.update(productData, {
+        where: { id: req.params.id },
+      });
+      // delete oldfile and replace it with a new photo
+      if (req.file) {
+        fs.unlinkSync(oldData.image);
+      }
+      res.status(200).send("Product edited successfully!");
     } catch (error) {
       console.log(error);
       res.status(500).send(error);
