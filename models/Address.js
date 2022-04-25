@@ -31,9 +31,10 @@ const Address = sequelize.define(
         },
       },
     },
-    default: {
+    is_default: {
       type: DataTypes.BOOLEAN,
       defaultValue: false,
+      allowNull: false,
     },
   },
   {
