@@ -47,6 +47,7 @@ const {
   cartRouter,
   userRouter,
   checkoutRouter,
+  transactionAdminRouter
 } = require('./routers');
 
 app.use('/public', express.static('public'));
@@ -55,6 +56,7 @@ app.use('/address', addressRouter);
 app.use('/category', categoryRouter);
 app.use('/deliveryoption', deliveryOptionRouter);
 app.use('/admin/auth', authAdminRouters);
+app.use('/admin/transaction', transactionAdminRouter);
 app.use('/product', productRouter);
 app.use('/cart', cartRouter);
 app.use('/user', userRouter);
