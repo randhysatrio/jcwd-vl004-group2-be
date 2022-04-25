@@ -12,8 +12,7 @@ const fs = require('fs');
 module.exports = {
   addCheckout: async (req, res) => {
     try {
-      let { notes, addressId, userId, deliveryoptionId, orderItems } =
-        req.body.dataCheckout;
+      let { notes, addressId, userId, deliveryoptionId, orderItems } = req.body.dataCheckout;
 
       // create invoice header
       const newInvoiceHeader = await InvoiceHeader.create(
@@ -55,9 +54,7 @@ module.exports = {
         );
       });
 
-      res
-        .status(201)
-        .send({ message: 'Checkout added', invoice: newInvoiceHeader.id });
+      res.status(201).send({ message: 'Checkout added', invoice: newInvoiceHeader.id });
     } catch (error) {
       res.status(500).send({ message: error.message });
     }
@@ -117,7 +114,7 @@ module.exports = {
 
       // update new selected default
       await Address.update(
-        { default: true },
+        { is_default: true },
         {
           where: {
             id,
@@ -127,7 +124,7 @@ module.exports = {
 
       // update last selected to not default
       await Address.update(
-        { default: false },
+        { is_default: false },
         {
           where: {
             id: lastId,

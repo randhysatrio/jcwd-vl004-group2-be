@@ -55,13 +55,13 @@ module.exports = {
     try {
       const currentDefault = await Address.findOne({ where: { is_default: true, userId: req.user.id } });
 
+      await Address.update({ is_default: true }, { where: { id: req.params.id } });
+
       if (currentDefault) {
         currentDefault.is_default = false;
 
         await currentDefault.save();
       }
-
-      await Address.update({ is_default: true }, { where: { id: req.params.id } });
 
       const addresses = await Address.findAll({ where: { userId: req.user.id } });
 
