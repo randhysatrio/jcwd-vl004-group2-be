@@ -2,6 +2,7 @@ const passport = require('passport');
 const User = require('../models/User');
 const { createVerificationToken } = require('../configs/jwtuser');
 const transporter = require('./nodemailer');
+const Cart = require('../models/Cart');
 
 const GOOGLE_CLIENT_ID = '454661987895-tq6a86lgbfst3gjunn19qsnm1c31f8va.apps.googleusercontent.com';
 const GOOGLE_CLIENT_SECRET = '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';
@@ -25,6 +26,7 @@ passport.use(
           profile_picture: profile.photos[0].value,
           googleId: profile.id,
         },
+        include: Cart,
       });
 
       if (!userData[0].googleId) {

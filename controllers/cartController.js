@@ -180,4 +180,59 @@ module.exports = {
       res.status(500).send({ message: error.message });
     }
   },
+  RSgetUserCartItems: async (req, res) => {
+    try {
+      const response = await User.findByPk(req.params.id, { include: { model: Cart, include: Product } });
+
+      res.status(200).send(response);
+    } catch (err) {
+      res.status(500).send(err);
+    }
+  },
+  RScheckedAll: async (req, res) => {
+    try {
+      await Cart.update(req.body, { where: { userId: req.params.id } });
+
+      const cartItems = await Cart.findAll({ where: { userId: req.params.id }, include: Product });
+
+      res.status(200).send(cartItems);
+    } catch (err) {
+      res.status(500).send(err);
+    }
+  },
+  RScheckedOne: async (req, res) => {
+    try {
+      const { isChecked, userId } = req.body;
+
+      await Cart.update({ isChecked }, { where: { id: req.params.id } });
+
+      const cartItems = await Cart.findAll({ where: { userId }, include: Product });
+
+      res.status(200).send(cartItems);
+    } catch (err) {
+      res.status(500).send(err);
+    }
+  },
+  RSdelete: async (req, res) => {
+    try {
+      const { userId } = req.body;
+
+      await Cart.destroy({ where: { id: req.params.id } });
+
+      const cartItems = await Cart.findAll({ where: { userId }, include: Product });
+
+      res.status(200).send(cartItems);
+    } catch (err) {
+      res.status(500).send(err);
+    }
+  },
+  RSupdate: async (req, res) => {
+    try {
+      await Cart.update({ quantity: req.body.quantity }, { where: { id: req.params.id } });
+
+      res.status(200).send('Quantity updated successfully!');
+    } catch (err) {
+      res.status(500).send(err);
+    }
+  },
 };

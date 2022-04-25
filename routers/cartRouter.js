@@ -9,4 +9,10 @@ router.patch('/update', verifyToken, cartController.updateCart);
 router.patch('/checked', verifyToken, cartController.updateChecked);
 router.patch('/checkedall', verifyToken, cartController.updateCheckedAll);
 
+router.get('/user/:id', cartController.RSgetUserCartItems);
+router.patch('/checked-all/:id', cartController.RScheckedAll);
+router.patch('/checked-one/:id', cartController.RScheckedOne);
+router.post('/destroy/:id', cartController.RSdelete);
+router.patch('/quantity/:id', cartController.RSupdate);
+
 module.exports = router;

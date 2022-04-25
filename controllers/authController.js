@@ -2,6 +2,7 @@ require('dotenv').config();
 const { createToken, createVerificationToken, createPasswordToken } = require('../configs/jwtuser');
 const transporter = require('../configs/nodemailer');
 const User = require('../models/User');
+const Cart = require('../models/Cart');
 const Crypto = require('crypto');
 
 module.exports = {
@@ -69,7 +70,7 @@ module.exports = {
 
       const { email, password } = req.body;
 
-      const userData = await User.findOne({ where: { email, password } });
+      const userData = await User.findOne({ where: { email, password }, include: Cart });
 
       if (!userData) {
         return res.send({ invalid: true });
@@ -90,7 +91,7 @@ module.exports = {
     try {
       const { id } = req.user;
 
-      const userData = await User.findByPk(id);
+      const userData = await User.findByPk(id, { include: Cart });
 
       const token = createToken({
         id: userData.id,
