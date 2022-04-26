@@ -28,7 +28,7 @@ app.use(express.json());
 app.use(bearerToken());
 app.use(
   cookieSession({
-    name: 'heizenberg-cookie',
+    name: "heizenberg-cookie",
     keys: [process.env.COOKIE_KEY],
   })
 );
@@ -39,7 +39,7 @@ app.use(passport.session());
   try {
     await sequelize.authenticate();
     // await sequelize.sync({ alter: true });
-    console.log('sequelize connection success!');
+    console.log("sequelize connection success!");
   } catch (error) {
     console.log(error);
   }
