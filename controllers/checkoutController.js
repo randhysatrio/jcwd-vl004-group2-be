@@ -110,7 +110,14 @@ module.exports = {
   },
   selectAddress: async (req, res) => {
     try {
-      const { id, lastId } = req.body;
+      const { id, userId } = req.body;
+
+      await Address.update(
+        {
+          is_default: false,
+        },
+        { where: { userId } }
+      );
 
       // update new selected default
       await Address.update(
@@ -123,16 +130,18 @@ module.exports = {
       );
 
       // update last selected to not default
-      await Address.update(
-        { is_default: false },
-        {
-          where: {
-            id: lastId,
-          },
-        }
-      );
+      // await Address.update(
+      //   { is_default: false },
+      //   {
+      //     where: {
+      //       id: lastId,
+      //     },
+      //   }
+      // );
 
-      res.status(200).send({ message: 'Address selected' });
+      const addresses = await Address.findAll({ where: { userId } });
+
+      res.status(200).send({ message: 'Address selected', addresses });
     } catch (error) {
       res.status(500).send({ message: error.message });
     }
