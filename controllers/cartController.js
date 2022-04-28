@@ -16,7 +16,9 @@ module.exports = {
         if (userCart.quantity + quantity > userCart.product.stock_in_unit) {
           return res.send({
             conflict: true,
-            message: `Cannot update this cart item quantity as you already had ${userCart.quantity.toLocaleString('id')} in your cart`,
+            message: `Cannot update this cart item quantity as you already had ${userCart.quantity.toLocaleString(
+              'id'
+            )} in your cart`,
           });
         } else {
           userCart.quantity = userCart.quantity + quantity;

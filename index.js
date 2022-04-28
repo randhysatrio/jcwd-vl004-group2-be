@@ -47,7 +47,7 @@ const {
   cartRouter,
   userRouter,
   checkoutRouter,
-  transactionAdminRouter
+  transactionAdminRouter,
 } = require('./routers');
 
 app.use('/public', express.static('public'));
