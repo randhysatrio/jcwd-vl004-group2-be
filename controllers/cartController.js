@@ -190,13 +190,17 @@ module.exports = {
 
         const updatedCartItems = await Cart.findAll({ where: { userId: req.params.id }, include: Product });
 
+        const checkoutItems = updatedCartItems.filter((item) => item.isChecked === true);
+
         res.status(200).send({
-          conflict: true,
-          conflict_msg: 'We cannot process one or more item in your cart due to cart product insufficient stock',
+          conflict_msg: true,
           cartItems: updatedCartItems,
+          checkoutItems,
         });
       } else {
-        res.status(200).send({ cartItems });
+        const checkoutItems = cartItems.filter((item) => item.isChecked === true);
+
+        res.status(200).send({ conflict_msg: '', cartItems, checkoutItems });
       }
     } catch (err) {
       res.status(500).send(err);
@@ -204,11 +208,19 @@ module.exports = {
   },
   RScheckedAll: async (req, res) => {
     try {
-      await Cart.update(req.body, { where: { userId: req.params.id } });
-
       const cartItems = await Cart.findAll({ where: { userId: req.params.id }, include: Product });
 
-      res.status(200).send({ cartItems });
+      const clearedItems = cartItems.filter((item) => item.quantity <= item.product.stock_in_unit);
+
+      const clearedItemsId = clearedItems.map((item) => item.id);
+
+      await Cart.update(req.body, { where: { id: clearedItemsId } });
+
+      const updatedCartItems = await Cart.findAll({ where: { userId: req.params.id }, include: Product });
+
+      const checkoutItems = updatedCartItems.filter((item) => item.isChecked === true);
+
+      res.status(200).send({ cartItems: updatedCartItems, checkoutItems });
     } catch (err) {
       res.status(500).send(err);
     }
@@ -221,7 +233,9 @@ module.exports = {
 
       const cartItems = await Cart.findAll({ where: { userId }, include: Product });
 
-      res.status(200).send({ cartItems });
+      const checkoutItems = cartItems.filter((item) => item.isChecked === true);
+
+      res.status(200).send({ cartItems, checkoutItems });
     } catch (err) {
       res.status(500).send(err);
     }
@@ -243,13 +257,16 @@ module.exports = {
 
         const updatedCartItems = await Cart.findAll({ where: { userId }, include: Product });
 
+        const checkoutItems = updatedCartItems.filter((item) => item.isChecked === true);
+
         res.status(200).send({
-          conflict: true,
-          conflict_msg: 'We cannot process one or more item in your cart due to cart product insufficient stock',
           cartItems: updatedCartItems,
+          checkoutItems,
         });
       } else {
-        res.status(200).send({ cartItems });
+        const checkoutItems = cartItems.filter((item) => item.isChecked === true);
+
+        res.status(200).send({ cartItems, checkoutItems });
       }
     } catch (err) {
       res.status(500).send(err);
@@ -272,15 +289,51 @@ module.exports = {
 
         const updatedCartItems = await Cart.findAll({ where: { userId }, include: Product });
 
+        const checkoutItems = updatedCartItems.filter((item) => item.isChecked === true);
+
         res.status(200).send({
-          conflict: true,
-          conflict_msg: 'We cannot process one or more item in your cart due to cart product insufficient stock',
           cartItems: updatedCartItems,
+          checkoutItems,
         });
       } else {
-        res.status(200).send({ cartItems });
+        const checkoutItems = cartItems.filter((item) => item.isChecked === true);
+
+        res.status(200).send({ cartItems, checkoutItems });
       }
     } catch (err) {
+      res.status(500).send(err);
+    }
+  },
+  RSfinalCheck: async (req, res) => {
+    try {
+      // const checkoutItemsId = req.body.checkoutItems.map((item) => item.id);
+
+      const checkoutItemsData = await Cart.findAll({ where: { userId: req.body.userId, isChecked: true }, include: Product });
+
+      console.log(checkoutItemsData);
+
+      console.log(checkoutItemsData.some((item) => item.quantity > item.product.stock_in_unit));
+
+      if (checkoutItemsData.some((item) => item.quantity > item.product.stock_in_unit)) {
+        const checkoutItemsId = checkoutItemsData.map((item) => item.id);
+
+        await Cart.update({ isChecked: false }, { where: { id: checkoutItemsId } });
+
+        const cartItems = await Cart.findAll({ where: { userId: req.body.userId }, include: Product });
+
+        const checkoutItems = cartItems.filter((item) => item.isChecked === true);
+
+        res.send({
+          not_allowed: true,
+          msg: 'We cannot continue your checkout process due to one or more items insufficient stock',
+          cartItems,
+          checkoutItems,
+        });
+      } else {
+        res.status(200).send({ allowed: true });
+      }
+    } catch (err) {
+      console.log(err);
       res.status(500).send(err);
     }
   },
