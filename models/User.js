@@ -48,8 +48,7 @@ const User = sequelize.define('user', {
   },
   profile_picture: {
     type: DataTypes.STRING,
-    // changed later definitely!
-    defaultValue: 'path to default user image',
+    defaultValue: 'public/images/profile/default.png',
   },
   is_verified: {
     type: DataTypes.STRING,

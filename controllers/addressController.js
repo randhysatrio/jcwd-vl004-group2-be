@@ -23,9 +23,19 @@ module.exports = {
         is_default,
       });
 
-      const addresses = await Address.findAll({ where: { userId: req.user.id } });
+      const { rows, count } = await Address.findAndCountAll({
+        where: { userId: req.user.id },
+        limit: 10,
+        offset: 0,
+      });
 
-      res.status(201).send({ message: 'Address created successfully!', addresses });
+      rows.sort((a, b) => {
+        if (a.is_default === true) {
+          return -1;
+        }
+      });
+
+      res.status(200).send({ message: 'Address created successfully!', rows, count });
     } catch (err) {
       console.log(err);
       res.status(500).send(err);
@@ -33,52 +43,98 @@ module.exports = {
   },
   get: async (req, res) => {
     try {
-      const addresses = await Address.findAll({ where: { userId: req.user.id } });
+      const { limit, currentPage } = req.body;
 
-      res.status(200).send(addresses);
+      const { rows, count } = await Address.findAndCountAll({
+        where: { userId: req.user.id },
+        limit,
+        offset: limit * currentPage - limit,
+      });
+
+      rows.sort((a, b) => {
+        if (a.is_default === true) {
+          return -1;
+        }
+      });
+
+      res.status(200).send({ rows, count });
     } catch (err) {
       res.status(500).send(err);
     }
   },
   delete: async (req, res) => {
     try {
+      const { limit, currentPage } = req.body;
+
       await Address.destroy({ where: { id: req.params.id } });
 
-      const addresses = await Address.findAll({ where: { userId: req.user.id } });
+      const { rows, count } = await Address.findAndCountAll({
+        where: { userId: req.user.id },
+        limit,
+        offset: limit * currentPage - limit,
+      });
 
-      res.status(200).send({ message: 'Address deleted successfully!', addresses });
+      rows.sort((a, b) => {
+        if (a.is_default === true) {
+          return -1;
+        }
+      });
+
+      res.status(200).send({ message: 'Address deleted successfully!', rows, count });
     } catch (err) {
       res.status(500).send(err);
     }
   },
   update: async (req, res) => {
     try {
-      const currentDefault = await Address.findOne({ where: { is_default: true, userId: req.user.id } });
+      const { limit, currentPage } = req.body;
+
+      await Address.update({ is_default: false }, { where: { userid: req.user.id } });
 
       await Address.update({ is_default: true }, { where: { id: req.params.id } });
 
-      if (currentDefault) {
-        currentDefault.is_default = false;
+      const { rows, count } = await Address.findAndCountAll({
+        where: { userId: req.user.id },
+        limit,
+        offset: limit * currentPage - limit,
+      });
 
-        await currentDefault.save();
-      }
+      rows.sort((a, b) => {
+        if (a.is_default === true) {
+          return -1;
+        }
+      });
 
-      const addresses = await Address.findAll({ where: { userId: req.user.id } });
-
-      res.status(200).send(addresses);
+      res.status(200).send({ rows, count });
     } catch (err) {
-      console.log(err);
       res.status(500).send(err);
     }
   },
   edit: async (req, res) => {
     try {
+      const { limit, currentPage } = req.body;
+
+      if (req.body.values.is_default) {
+        await Address.update({ is_default: false }, { where: { userId: req.user.id } });
+      }
+
       await Address.update(req.body.values, { where: { id: req.params.id } });
 
-      const addresses = await Address.findAll({ where: { userId: req.body.userId } });
+      const { rows, count } = await Address.findAndCountAll({
+        where: { userId: req.user.id },
+        limit,
+        offset: limit * currentPage - limit,
+      });
 
-      res.status(200).send({ message: 'Address updated successfully', addresses });
+      rows.sort((a, b) => {
+        if (a.is_default === true) {
+          return -1;
+        }
+      });
+
+      res.status(200).send({ message: 'Address updated successfully!', rows, count });
     } catch (err) {
+      console.log(err);
       res.status(500).send(err);
     }
   },
