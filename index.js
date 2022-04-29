@@ -48,6 +48,7 @@ const {
   userRouter,
   checkoutRouter,
   transactionAdminRouter,
+  transactionUserRouter,
 } = require('./routers');
 
 app.use('/public', express.static('public'));
@@ -61,5 +62,6 @@ app.use('/product', productRouter);
 app.use('/cart', cartRouter);
 app.use('/user', userRouter);
 app.use('/checkout', checkoutRouter);
+app.use('/history', transactionUserRouter);
 
 app.listen(5000, () => console.log('API running at port 5000'));
