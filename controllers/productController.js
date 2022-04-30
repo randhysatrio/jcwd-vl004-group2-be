@@ -37,18 +37,19 @@ module.exports = {
   },
   query: async (req, res) => {
     try {
-      const { name, category, limit, offset, appearance, sort, gte, lte, between } = req.body;
+      const { keyword, category, limit, offset, appearance, sort, gte, lte, between } = req.body;
 
       const query = {
         limit,
       };
 
-      if (name) {
+      if (keyword) {
         query.where = {
           ...query.where,
           [Op.or]: {
-            name: { [Op.substring]: name },
-            '$category.name$': { [Op.substring]: name },
+            name: { [Op.substring]: keyword },
+            appearance: { [Op.substring]: keyword },
+            '$category.name$': { [Op.substring]: keyword },
           },
         };
       }
