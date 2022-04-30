@@ -19,6 +19,10 @@ const InvoiceHeader = sequelize.define('invoiceheader', {
   notes: {
     type: DataTypes.STRING(1024),
   },
+  is_received: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+  },
 });
 
 InvoiceHeader.hasMany(InvoiceItem);

@@ -1,6 +1,6 @@
-const { Op } = require("sequelize");
-const Product = require("../models/Product");
-const Category = require("../models/Category");
+const { Op } = require('sequelize');
+const Product = require('../models/Product');
+const Category = require('../models/Category');
 
 module.exports = {
   add: async (req, res) => {
@@ -20,7 +20,7 @@ module.exports = {
         stock_in_unit: productData.stock * productData.volume,
       });
 
-      res.status(201).send("Product created successfully!");
+      res.status(201).send('Product created successfully!');
     } catch (err) {
       console.log(err);
       res.status(500).send(err);
@@ -37,24 +37,20 @@ module.exports = {
   },
   query: async (req, res) => {
     try {
-      const {
-        name,
-        category,
-        limit,
-        offset,
-        appearance,
-        sort,
-        gte,
-        lte,
-        between,
-      } = req.body;
+      const { name, category, limit, offset, appearance, sort, gte, lte, between } = req.body;
 
       const query = {
         limit,
       };
 
       if (name) {
-        query.where = { ...query.where, name: { [Op.substring]: name } };
+        query.where = {
+          ...query.where,
+          [Op.or]: {
+            name: { [Op.substring]: name },
+            '$category.name$': { [Op.substring]: name },
+          },
+        };
       }
 
       if (category) {
@@ -66,7 +62,7 @@ module.exports = {
       }
 
       if (sort) {
-        query.order = [sort.split(",")];
+        query.order = [sort.split(',')];
       }
 
       if (gte) {
@@ -98,8 +94,8 @@ module.exports = {
   appearance: async (req, res) => {
     try {
       const appearances = await Product.findAll({
-        attributes: ["appearance"],
-        group: "appearance",
+        attributes: ['appearance'],
+        group: 'appearance',
       });
 
       res.status(200).send(appearances);
@@ -139,7 +135,7 @@ module.exports = {
           where: { id: req.params.id },
         }
       );
-      res.status(200).send("Product edited successfully!");
+      res.status(200).send('Product edited successfully!');
     } catch (error) {
       console.log(error);
       res.status(500).send(error);
@@ -149,7 +145,7 @@ module.exports = {
     try {
       await Product.destroy({ where: { id: req.params.id } });
     } catch {
-      res.status(200).send("Product deleted successfully!");
+      res.status(200).send('Product deleted successfully!');
     }
   },
   restore: async (req, res) => {
@@ -157,7 +153,7 @@ module.exports = {
       await Product.restore({
         where: { id: req.params.id },
       });
-      res.status(200).send("Product recovered successfully!");
+      res.status(200).send('Product recovered successfully!');
     } catch (error) {
       res.status(500).send(error);
     }

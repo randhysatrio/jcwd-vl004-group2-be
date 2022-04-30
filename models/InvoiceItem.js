@@ -10,6 +10,12 @@ const InvoiceItem = sequelize.define('invoiceitem', {
     type: DataTypes.INTEGER,
     allowNull: false,
   },
+  subtotal: {
+    type: DataTypes.VIRTUAL,
+    get() {
+      return this.quantity * this.price;
+    },
+  },
 });
 
 module.exports = InvoiceItem;

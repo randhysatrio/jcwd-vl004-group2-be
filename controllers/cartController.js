@@ -7,6 +7,15 @@ module.exports = {
     try {
       const { productId, userId, quantity } = req.body;
 
+      const productData = await Product.findByPk(productId);
+
+      if (productData.deletedAt) {
+        return res.send({
+          conflict: true,
+          message: `This product has already been removed from store!`,
+        });
+      }
+
       const userCart = await Cart.findOne({
         where: { userId, productId },
         include: Product,
@@ -16,9 +25,9 @@ module.exports = {
         if (userCart.quantity + quantity > userCart.product.stock_in_unit) {
           return res.send({
             conflict: true,
-            message: `Cannot update this cart item quantity as you already had ${userCart.quantity.toLocaleString(
-              'id'
-            )} in your cart`,
+            message: `Cannot update this cart item quantity as you already had ${userCart.quantity.toLocaleString('id')} ${
+              userCart.product.unit
+            } in your cart`,
           });
         } else {
           userCart.quantity = userCart.quantity + quantity;
