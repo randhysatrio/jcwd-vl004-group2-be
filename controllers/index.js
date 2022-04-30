@@ -9,6 +9,7 @@ const cartController = require('./cartController');
 const userController = require('./userController');
 const checkoutController = require('./checkoutController');
 const transactionUserController = require('./transactionUserController');
+const invoiceItemController = require('./invoiceItemController');
 
 module.exports = {
   authAdminControllers,
@@ -22,4 +23,5 @@ module.exports = {
   userController,
   checkoutController,
   transactionUserController,
+  invoiceItemController,
 };

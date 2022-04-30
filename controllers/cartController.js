@@ -7,6 +7,15 @@ module.exports = {
     try {
       const { productId, userId, quantity } = req.body;
 
+      const productData = await Product.findByPk(productId);
+
+      if (productData.deletedAt) {
+        return res.send({
+          conflict: true,
+          message: `This product has already been removed from store!`,
+        });
+      }
+
       const userCart = await Cart.findOne({
         where: { userId, productId },
         include: Product,
