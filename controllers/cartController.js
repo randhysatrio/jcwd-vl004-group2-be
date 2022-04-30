@@ -179,21 +179,21 @@ module.exports = {
   },
   RSgetUserCartItems: async (req, res) => {
     try {
-      const cartItems = await Cart.findAll({ where: { userId: req.params.id }, include: Product });
+      const cartItems = await Cart.findAll({ where: { userId: req.params.id }, include: [{ model: Product, paranoid: false }] });
 
-      const conflictItems = cartItems.filter((cart) => cart.quantity > cart.product.stock_in_unit);
+      const conflictItems = cartItems.filter((cart) => cart.quantity > cart.product.stock_in_unit || cart.product.deletedAt);
 
       if (conflictItems.length) {
         const conflictItemsId = conflictItems.map((item) => item.id);
 
         await Cart.update({ isChecked: false }, { where: { id: conflictItemsId } });
 
-        const updatedCartItems = await Cart.findAll({ where: { userId: req.params.id }, include: Product });
+        const updatedCartItems = await Cart.findAll({ where: { userId: req.params.id }, include: [{ model: Product, paranoid: false }] });
 
         const checkoutItems = updatedCartItems.filter((item) => item.isChecked === true);
 
         res.status(200).send({
-          conflict_msg: true,
+          initConflict: true,
           cartItems: updatedCartItems,
           checkoutItems,
         });
@@ -208,15 +208,15 @@ module.exports = {
   },
   RScheckedAll: async (req, res) => {
     try {
-      const cartItems = await Cart.findAll({ where: { userId: req.params.id }, include: Product });
+      const cartItems = await Cart.findAll({ where: { userId: req.params.id }, include: [{ model: Product, paranoid: false }] });
 
-      const clearedItems = cartItems.filter((item) => item.quantity <= item.product.stock_in_unit);
+      const clearedItems = cartItems.filter((item) => item.quantity <= item.product.stock_in_unit && !item.product.deletedAt);
 
       const clearedItemsId = clearedItems.map((item) => item.id);
 
       await Cart.update(req.body, { where: { id: clearedItemsId } });
 
-      const updatedCartItems = await Cart.findAll({ where: { userId: req.params.id }, include: Product });
+      const updatedCartItems = await Cart.findAll({ where: { userId: req.params.id }, include: [{ model: Product, paranoid: false }] });
 
       const checkoutItems = updatedCartItems.filter((item) => item.isChecked === true);
 
@@ -231,7 +231,7 @@ module.exports = {
 
       await Cart.update({ isChecked }, { where: { id: req.params.id } });
 
-      const cartItems = await Cart.findAll({ where: { userId }, include: Product });
+      const cartItems = await Cart.findAll({ where: { userId }, include: [{ model: Product, paranoid: false }] });
 
       const checkoutItems = cartItems.filter((item) => item.isChecked === true);
 
@@ -246,16 +246,16 @@ module.exports = {
 
       await Cart.destroy({ where: { id: req.params.id } });
 
-      const cartItems = await Cart.findAll({ where: { userId }, include: Product });
+      const cartItems = await Cart.findAll({ where: { userId }, include: [{ model: Product, paranoid: false }] });
 
-      const conflictItems = cartItems.filter((cart) => cart.quantity > cart.product.stock_in_unit);
+      const conflictItems = cartItems.filter((cart) => cart.quantity > cart.product.stock_in_unit || cart.product.deletedAt);
 
       if (conflictItems.length) {
         const conflictItemsId = conflictItems.map((item) => item.id);
 
         await Cart.update({ isChecked: false }, { where: { id: conflictItemsId } });
 
-        const updatedCartItems = await Cart.findAll({ where: { userId }, include: Product });
+        const updatedCartItems = await Cart.findAll({ where: { userId }, include: [{ model: Product, paranoid: false }] });
 
         const checkoutItems = updatedCartItems.filter((item) => item.isChecked === true);
 
@@ -278,16 +278,16 @@ module.exports = {
 
       await Cart.update({ quantity: quantity }, { where: { id: req.params.id } });
 
-      const cartItems = await Cart.findAll({ where: { userId }, include: Product });
+      const cartItems = await Cart.findAll({ where: { userId }, include: [{ model: Product, paranoid: false }] });
 
-      const conflictItems = cartItems.filter((cart) => cart.quantity > cart.product.stock_in_unit);
+      const conflictItems = cartItems.filter((cart) => cart.quantity > cart.product.stock_in_unit || cart.product.deletedAt);
 
       if (conflictItems.length) {
         const conflictItemsId = conflictItems.map((item) => item.id);
 
         await Cart.update({ isChecked: false }, { where: { id: conflictItemsId } });
 
-        const updatedCartItems = await Cart.findAll({ where: { userId }, include: Product });
+        const updatedCartItems = await Cart.findAll({ where: { userId }, include: [{ model: Product, paranoid: false }] });
 
         const checkoutItems = updatedCartItems.filter((item) => item.isChecked === true);
 
@@ -306,26 +306,23 @@ module.exports = {
   },
   RSfinalCheck: async (req, res) => {
     try {
-      // const checkoutItemsId = req.body.checkoutItems.map((item) => item.id);
+      const checkoutItemsData = await Cart.findAll({
+        where: { userId: req.body.userId, isChecked: true },
+        include: [{ model: Product, paranoid: false }],
+      });
 
-      const checkoutItemsData = await Cart.findAll({ where: { userId: req.body.userId, isChecked: true }, include: Product });
-
-      console.log(checkoutItemsData);
-
-      console.log(checkoutItemsData.some((item) => item.quantity > item.product.stock_in_unit));
-
-      if (checkoutItemsData.some((item) => item.quantity > item.product.stock_in_unit)) {
+      if (checkoutItemsData.some((item) => item.quantity > item.product.stock_in_unit || item.product.deletedAt)) {
         const checkoutItemsId = checkoutItemsData.map((item) => item.id);
 
         await Cart.update({ isChecked: false }, { where: { id: checkoutItemsId } });
 
-        const cartItems = await Cart.findAll({ where: { userId: req.body.userId }, include: Product });
+        const cartItems = await Cart.findAll({ where: { userId: req.body.userId }, include: [{ model: Product, paranoid: false }] });
 
         const checkoutItems = cartItems.filter((item) => item.isChecked === true);
 
         res.send({
           not_allowed: true,
-          msg: 'We cannot continue your checkout process due to one or more items insufficient stock',
+          msg: 'We cannot continue your checkout process due to possible conflict with your items',
           cartItems,
           checkoutItems,
         });
@@ -333,7 +330,6 @@ module.exports = {
         res.status(200).send({ allowed: true });
       }
     } catch (err) {
-      console.log(err);
       res.status(500).send(err);
     }
   },

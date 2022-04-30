@@ -6,6 +6,7 @@ module.exports = {
   add: async (req, res) => {
     try {
       const productData = JSON.parse(req.body.productData);
+
       await Product.create({
         name: productData.name,
         price_buy: productData.price_buy,
@@ -22,7 +23,6 @@ module.exports = {
 
       res.status(201).send('Product created successfully!');
     } catch (err) {
-      console.log(err);
       res.status(500).send(err);
     }
   },
@@ -89,7 +89,6 @@ module.exports = {
 
       res.status(200).send({ products: rows, length: count });
     } catch (err) {
-      console.log(err);
       res.status(500).send(err);
     }
   },
