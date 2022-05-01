@@ -5,12 +5,8 @@ module.exports = {
     try {
       const { address, city, province, country, postalcode, is_default } = req.body;
 
-      const currentDefault = await Address.findOne({ where: { is_default: true, userId: req.user.id } });
-
-      if (is_default && currentDefault) {
-        currentDefault.is_default = false;
-
-        await currentDefault.save();
+      if (is_default) {
+        await Address.update({ is_default: false }, { where: { userId: req.user.id } });
       }
 
       await Address.create({
@@ -37,7 +33,6 @@ module.exports = {
 
       res.status(200).send({ message: 'Address created successfully!', rows, count });
     } catch (err) {
-      console.log(err);
       res.status(500).send(err);
     }
   },
@@ -134,7 +129,6 @@ module.exports = {
 
       res.status(200).send({ message: 'Address updated successfully!', rows, count });
     } catch (err) {
-      console.log(err);
       res.status(500).send(err);
     }
   },
