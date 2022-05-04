@@ -57,6 +57,7 @@ const {
   checkoutRouter,
   transactionAdminRouter,
   transactionUserRouter,
+  messageRouter,
 } = require('./routers');
 
 app.use('/public', express.static('public'));
@@ -71,6 +72,7 @@ app.use('/cart', cartRouter);
 app.use('/user', userRouter);
 app.use('/checkout', checkoutRouter);
 app.use('/history', transactionUserRouter);
+app.use('/message', messageRouter);
 
 // Socket.io
 app.use('/', (req, res) => {
@@ -91,13 +93,41 @@ io.on('connection', (socket) => {
     if (!users.length || !users.some((user) => user.id === userId)) {
       users.push({ id: userId, socketId: socket.id });
       console.log(users);
+      console.log(admins);
+    }
+  });
+
+  socket.on('adminJoin', (adminId) => {
+    if (!admins.length || !admins.some((admin) => admin.id === adminId)) {
+      admins.push({ id: adminId, socketId: socket.id });
+      console.log(users);
+      console.log(admins);
+    }
+  });
+
+  socket.on('adminNotif', () => {
+    if (admins.length) {
+      admins.forEach((admin) => io.to(admin.socketId).emit('newAdminNotif'));
+    }
+  });
+
+  socket.on('userNotif', (userId) => {
+    const userData = users.find((user) => user.id === userId);
+
+    if (userData) {
+      io.to(userData.socketId).emit('newUserNotif');
     }
   });
 
   socket.on('disconnect', () => {
-    users = users.filter((user) => user.socketId !== socket.id);
-    console.log(users);
+    if (users.some((user) => user.socketId === socket.id)) {
+      users = users.filter((user) => user.socketId !== socket.id);
+    } else {
+      admins = admins.filter((admin) => admin.socketId !== socket.id);
+    }
     console.log(`${socket.id} has disconnected`);
+    console.log(users);
+    console.log(admins);
   });
 });
 

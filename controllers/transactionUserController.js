@@ -8,6 +8,7 @@ const Address = require('../models/Address');
 const Product = require('../models/Product');
 const Category = require('../models/Category');
 const DeliveryOption = require('../models/DeliveryOption');
+const Message = require('../models/Message');
 
 module.exports = {
   get: async (req, res) => {
@@ -58,6 +59,7 @@ module.exports = {
           { model: Address, paranoid: false },
           { model: DeliveryOption, attributes: ['name', 'cost'], paranoid: false },
         ],
+        order: [['createdAt', 'desc']],
       });
 
       res.status(200).send({ invoices: rows, count });
@@ -75,6 +77,13 @@ module.exports = {
         res.send({ conflict: true, message: 'You already received this order' });
       } else {
         await InvoiceHeader.update({ is_received: true }, { where: { id: req.params.id, userId: req.user.id } });
+
+        await Message.create({
+          userId: req.user.id,
+          to: 'admin',
+          header: `Invoice #${req.params.id} has reached their destination`,
+          content: `User ID#${req.user.id} (${req.user.name}) has informed us that Invoice ID#${req.params.id} has been successfully received by this user.|Thank you and have a nice day :)|**This is an automated message**`,
+        });
 
         res.status(200).send({ message: 'Thank you for letting us know you have received your order!', received: true });
       }

@@ -26,7 +26,7 @@ router.get('/login/success', (req, res) => {
   if (req.user) {
     const token = createToken({
       id: req.user.id,
-      name: req.user.username,
+      name: req.user.name,
       email: req.user.email,
     });
 

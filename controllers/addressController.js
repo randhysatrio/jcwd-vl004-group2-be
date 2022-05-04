@@ -23,12 +23,7 @@ module.exports = {
         where: { userId: req.user.id },
         limit: 10,
         offset: 0,
-      });
-
-      rows.sort((a, b) => {
-        if (a.is_default === true) {
-          return -1;
-        }
+        order: [['is_default', 'desc']],
       });
 
       res.status(200).send({ message: 'Address created successfully!', rows, count });
@@ -44,12 +39,7 @@ module.exports = {
         where: { userId: req.user.id },
         limit,
         offset: limit * currentPage - limit,
-      });
-
-      rows.sort((a, b) => {
-        if (a.is_default === true) {
-          return -1;
-        }
+        order: [['is_default', 'desc']],
       });
 
       res.status(200).send({ rows, count });
@@ -67,12 +57,7 @@ module.exports = {
         where: { userId: req.user.id },
         limit,
         offset: limit * currentPage - limit,
-      });
-
-      rows.sort((a, b) => {
-        if (a.is_default === true) {
-          return -1;
-        }
+        order: [['is_default', 'desc']],
       });
 
       res.status(200).send({ message: 'Address deleted successfully!', rows, count });
@@ -92,12 +77,7 @@ module.exports = {
         where: { userId: req.user.id },
         limit,
         offset: limit * currentPage - limit,
-      });
-
-      rows.sort((a, b) => {
-        if (a.is_default === true) {
-          return -1;
-        }
+        order: [['is_default', 'desc']],
       });
 
       res.status(200).send({ rows, count });
@@ -107,24 +87,19 @@ module.exports = {
   },
   edit: async (req, res) => {
     try {
-      const { limit, currentPage } = req.body;
+      const { limit, currentPage, values } = req.body;
 
-      if (req.body.values.is_default) {
+      if (values.is_default) {
         await Address.update({ is_default: false }, { where: { userId: req.user.id } });
       }
 
-      await Address.update(req.body.values, { where: { id: req.params.id } });
+      await Address.update(values, { where: { id: req.params.id } });
 
       const { rows, count } = await Address.findAndCountAll({
         where: { userId: req.user.id },
         limit,
         offset: limit * currentPage - limit,
-      });
-
-      rows.sort((a, b) => {
-        if (a.is_default === true) {
-          return -1;
-        }
+        order: [['is_default', 'desc']],
       });
 
       res.status(200).send({ message: 'Address updated successfully!', rows, count });

@@ -18,6 +18,15 @@ const Message = sequelize.define('message', {
     type: DataTypes.BOOLEAN,
     defaultValue: false,
   },
+  to: {
+    type: DataTypes.STRING,
+    validate: {
+      isIn: {
+        args: [['user', 'admin']],
+        msg: 'Only user or admin is allowed!',
+      },
+    },
+  },
 });
 
 module.exports = Message;
