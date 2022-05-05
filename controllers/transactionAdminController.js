@@ -10,8 +10,8 @@ const PaymentProof = require('../models/PaymentProof');
 module.exports = {
   getTransaction: async (req, res) => {
     try {
-      let search = req.query.search;
-      let page = req.query.page ? req.query.page : 1;
+      let search = req.body.search ? req.body.search : '';
+      let page = req.body.page ? req.body.page : 1;
       page = parseInt(page);
       let render = 5;
       let start = (page - 1) * render;

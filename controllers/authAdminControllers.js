@@ -24,9 +24,7 @@ module.exports = {
       let { email, password } = req.body;
 
       // Hashing
-      password = Crypto.createHmac('sha1', 'hash123')
-        .update(password)
-        .digest('hex');
+      password = Crypto.createHmac('sha1', 'hash123').update(password).digest('hex');
 
       // Check email & password
       const login = await Admin.findOne({
@@ -48,9 +46,7 @@ module.exports = {
         });
 
         delete login.password;
-        res
-          .status(200)
-          .send({ data: login, token: token, message: 'Login successed' });
+        res.status(200).send({ data: login, token: token, message: 'Login successed' });
       } else {
         throw new Error('Wrong email or password');
       }
@@ -107,9 +103,7 @@ module.exports = {
       let { password } = req.body;
 
       // Hashing
-      password = Crypto.createHmac('sha1', 'hash123')
-        .update(password)
-        .digest('hex');
+      password = Crypto.createHmac('sha1', 'hash123').update(password).digest('hex');
 
       // Update password
       await Admin.update(
@@ -124,6 +118,17 @@ module.exports = {
       res.status(201).send({ message: 'Password updated' });
     } catch (error) {
       res.status(500).send({ message: error.message });
+    }
+  },
+  createAdmin: async (req, res) => {
+    try {
+      req.body.password = Crypto.createHmac('sha1', 'hash123').update(req.body.password).digest('hex');
+
+      await Admin.create(req.body);
+
+      res.status(201).send('Admin Account created successfully!');
+    } catch (err) {
+      res.status(500).send(err);
     }
   },
 };

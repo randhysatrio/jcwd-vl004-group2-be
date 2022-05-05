@@ -8,6 +8,7 @@ const Cart = require('../models/Cart');
 const Product = require('../models/Product');
 const { uploader } = require('../configs/uploaderPayment');
 const fs = require('fs');
+const Message = require('../models/Message');
 
 module.exports = {
   addCheckout: async (req, res) => {
@@ -167,6 +168,13 @@ module.exports = {
           });
 
           if (response) {
+            await Message.create({
+              userId: req.user.id,
+              to: 'admin',
+              header: `Awaiting Approval for Invoice #${invoiceheaderId}`,
+              content: `User ID#${req.user.id} (${req.user.name}) has made the payment for Invoice #${invoiceheaderId}.|Please continue with the appropriate approval process for this invoice.|Thank you and have a nice day :)|**This is an automated message**`,
+            });
+
             res.status(200).send({ message: 'file uploaded' });
           } else {
             fs.unlinkSync('./public' + filepath);
