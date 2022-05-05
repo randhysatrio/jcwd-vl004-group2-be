@@ -86,36 +86,53 @@ app.use('/', (req, res) => {
 let users = [];
 let admins = [];
 
+const Message = require('./models/Message');
+
 io.on('connection', (socket) => {
   console.log(`${socket.id} has connected`);
 
-  socket.on('userJoin', (userId) => {
+  socket.on('userJoin', async (userId) => {
     if (!users.length || !users.some((user) => user.id === userId)) {
       users.push({ id: userId, socketId: socket.id });
       console.log(users);
       console.log(admins);
+
+      const totalNotif = await Message.count({ where: { userId, is_new: true } });
+
+      if (totalNotif) {
+        io.to(socket.id).emit('newUserNotif', totalNotif);
+      }
     }
   });
 
-  socket.on('adminJoin', (adminId) => {
+  socket.on('adminJoin', async (adminId) => {
     if (!admins.length || !admins.some((admin) => admin.id === adminId)) {
       admins.push({ id: adminId, socketId: socket.id });
       console.log(users);
       console.log(admins);
+      const totalNotif = await Message.count({ where: { to: 'admin', is_new: true } });
+
+      if (totalNotif) {
+        io.to(socket.id).emit('newAdminNotif', totalNotif);
+      }
     }
   });
 
-  socket.on('adminNotif', () => {
+  socket.on('adminNotif', async () => {
     if (admins.length) {
-      admins.forEach((admin) => io.to(admin.socketId).emit('newAdminNotif'));
+      const totalNotif = await Message.count({ where: { to: 'admin', is_new: true } });
+
+      admins.forEach((admin) => io.to(admin.socketId).emit('newAdminNotif', totalNotif));
     }
   });
 
-  socket.on('userNotif', (userId) => {
+  socket.on('userNotif', async (userId) => {
     const userData = users.find((user) => user.id === userId);
 
     if (userData) {
-      io.to(userData.socketId).emit('newUserNotif');
+      const totalNotif = await Message.count({ where: { userId, is_new: true } });
+
+      io.to(userData.socketId).emit('newUserNotif', totalNotif);
     }
   });
 
@@ -131,5 +148,5 @@ io.on('connection', (socket) => {
   });
 });
 
-app.listen(5000, () => console.log('API running at port 5000'));
-httpServer.listen(7000, () => console.log('Socket.io Server running at Port 7000'));
+app.listen(process.env.PORT, () => console.log(`API running at port ${process.env.PORT}`));
+httpServer.listen(process.env.PORT_SOCKET, () => console.log(`Socket.io Server running at Port ${process.env.PORT_SOCKET}`));

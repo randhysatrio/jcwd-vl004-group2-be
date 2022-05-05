@@ -124,8 +124,6 @@ module.exports = {
     try {
       req.body.password = Crypto.createHmac('sha1', 'hash123').update(req.body.password).digest('hex');
 
-      // const { name, username, email, password } = req.body;
-
       await Admin.create(req.body);
 
       res.status(201).send('Admin Account created successfully!');

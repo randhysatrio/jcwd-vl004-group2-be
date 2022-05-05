@@ -1,3 +1,4 @@
+const { Op } = require('sequelize');
 const Admin = require('../models/Admin');
 const Message = require('../models/Message');
 const User = require('../models/User');
@@ -5,10 +6,23 @@ const User = require('../models/User');
 module.exports = {
   getUserMsg: async (req, res) => {
     try {
-      const { limit, currentPage } = req.body;
+      const { limit, currentPage, keyword } = req.body;
+
+      let where = { userId: req.params.id, to: 'user' };
+
+      if (keyword) {
+        where = {
+          ...where,
+          [Op.or]: {
+            header: { [Op.substring]: keyword },
+            adminId: { [Op.substring]: keyword },
+            '$admin.name$': { [Op.substring]: keyword },
+          },
+        };
+      }
 
       const { count, rows } = await Message.findAndCountAll({
-        where: { userId: req.params.id, to: 'user' },
+        where,
         limit,
         offset: currentPage * limit - limit,
         order: [['createdAt', 'desc']],
@@ -22,10 +36,23 @@ module.exports = {
   },
   getAdminMsg: async (req, res) => {
     try {
-      const { limit, currentPage } = req.body;
+      const { limit, currentPage, keyword } = req.body;
+
+      let where = { to: 'admin' };
+
+      if (keyword) {
+        where = {
+          ...where,
+          [Op.or]: {
+            header: { [Op.substring]: keyword },
+            userId: { [Op.substring]: keyword },
+            '$user.name$': { [Op.substring]: keyword },
+          },
+        };
+      }
 
       const { count, rows } = await Message.findAndCountAll({
-        where: { to: 'admin' },
+        where,
         limit,
         offset: currentPage * limit - limit,
         order: [['createdAt', 'desc']],
@@ -64,7 +91,7 @@ module.exports = {
       res.status(500).send(err);
     }
   },
-  deleteUser: async (req, res) => {
+  deleteUserMsg: async (req, res) => {
     try {
       const { userId, limit, currentPage } = req.body;
 
@@ -83,7 +110,7 @@ module.exports = {
       res.status(500).send(err);
     }
   },
-  deleteAdmin: async (req, res) => {
+  deleteAdminMsg: async (req, res) => {
     try {
       const { limit, currentPage } = req.body;
 
