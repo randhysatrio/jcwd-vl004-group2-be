@@ -97,7 +97,7 @@ io.on('connection', (socket) => {
       console.log(users);
       console.log(admins);
 
-      const totalNotif = await Message.count({ where: { userId, is_new: true } });
+      const totalNotif = await Message.count({ where: { userId, to: 'user', is_new: true } });
 
       if (totalNotif) {
         io.to(socket.id).emit('newUserNotif', totalNotif);
@@ -130,7 +130,7 @@ io.on('connection', (socket) => {
     const userData = users.find((user) => user.id === userId);
 
     if (userData) {
-      const totalNotif = await Message.count({ where: { userId, is_new: true } });
+      const totalNotif = await Message.count({ where: { userId, to: 'user', is_new: true } });
 
       io.to(userData.socketId).emit('newUserNotif', totalNotif);
     }
