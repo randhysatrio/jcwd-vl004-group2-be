@@ -12,6 +12,7 @@ const transactionUserController = require('./transactionUserController');
 const invoiceItemController = require('./invoiceItemController');
 const messageController = require('./messageController');
 const reportController = require('./reportController');
+const adminController = require('./adminController');
 
 module.exports = {
   authAdminControllers,
@@ -28,4 +29,5 @@ module.exports = {
   invoiceItemController,
   messageController,
   reportController,
+  adminController,
 };

@@ -38,11 +38,19 @@ module.exports = {
   },
   query: async (req, res) => {
     try {
-      const { keyword, category, limit, offset, appearance, sort, gte, lte, between } = req.body;
+      const { keyword, category, limit, offset, appearance, sort, gte, lte, between, exclude } = req.body;
 
       const query = {
         limit,
       };
+
+      if (category !== 'all') {
+        if (category) {
+          const categoryData = await Category.findOne({ where: { name: category } });
+
+          query.where = { ...query.where, categoryId: categoryData.id };
+        }
+      }
 
       if (keyword) {
         query.where = {
@@ -53,10 +61,6 @@ module.exports = {
             '$category.name$': { [Op.substring]: keyword },
           },
         };
-      }
-
-      if (category) {
-        query.where = { ...query.where, categoryId: category };
       }
 
       if (appearance) {
@@ -83,10 +87,14 @@ module.exports = {
         query.offset = offset;
       }
 
-      const { count, rows } = await Product.findAndCountAll({
+      let { count, rows } = await Product.findAndCountAll({
         ...query,
         include: Category,
       });
+
+      if (exclude) {
+        rows = rows.filter((row) => row.id !== exclude);
+      }
 
       res.status(200).send({ products: rows, length: count });
     } catch (err) {
