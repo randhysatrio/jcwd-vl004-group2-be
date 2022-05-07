@@ -11,6 +11,7 @@ const checkoutController = require('./checkoutController');
 const transactionUserController = require('./transactionUserController');
 const invoiceItemController = require('./invoiceItemController');
 const messageController = require('./messageController');
+const reportController = require('./reportController');
 
 module.exports = {
   authAdminControllers,
@@ -26,4 +27,5 @@ module.exports = {
   transactionUserController,
   invoiceItemController,
   messageController,
+  reportController,
 };

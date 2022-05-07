@@ -51,7 +51,6 @@ module.exports = {
       page = parseInt(page);
       let render = 5;
       let start = (page - 1) * render;
-      let end = start + render;
 
       const count = await Cart.count({
         where: {
@@ -83,7 +82,7 @@ module.exports = {
             model: Cart,
             include: [Product],
             offset: start,
-            limit: end,
+            limit: render,
           },
         ],
       });

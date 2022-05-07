@@ -15,7 +15,6 @@ module.exports = {
       page = parseInt(page);
       let render = 5;
       let start = (page - 1) * render;
-      let end = start + render;
       let startNumber = render * page - render;
 
       const count = await InvoiceHeader.count({
@@ -53,7 +52,8 @@ module.exports = {
           { model: InvoiceItem, include: [Product] },
         ],
         offset: start,
-        limit: end,
+        limit: render,
+        order: [['createdAt', 'DESC']],
       });
 
       res.status(200).send({
