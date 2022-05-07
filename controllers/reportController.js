@@ -7,6 +7,7 @@ module.exports = {
   getReport: async (req, res) => {
     try {
       let { search, startDate, endDate } = req.query;
+      search = search ? search : '';
       let page = req.query.page ? req.query.page : 1;
       page = parseInt(page);
       let render = 5;
@@ -75,18 +76,25 @@ module.exports = {
       // count total data
       let count = countData.length;
       // statistic
-      let capital = countData.reduce((a, b) => ({
-        capital: parseInt(a.capital) + parseInt(b.capital),
-      }));
-      let total_bill = countData.reduce((a, b) => ({
-        total_bill: parseInt(a.total_bill) + parseInt(b.total_bill),
-      }));
-      let total_sales = countData.reduce((a, b) => ({
-        total_sales: parseInt(a.total_sales) + parseInt(b.total_sales),
-      }));
+      let capital =
+        countData.length &&
+        countData.reduce((a, b) => ({
+          capital: parseInt(a.capital) + parseInt(b.capital),
+        }));
+      let total_bill =
+        countData.length &&
+        countData.reduce((a, b) => ({
+          total_bill: parseInt(a.total_bill) + parseInt(b.total_bill),
+        }));
+      let total_sales =
+        countData.length &&
+        countData.reduce((a, b) => ({
+          total_sales: parseInt(a.total_sales) + parseInt(b.total_sales),
+        }));
       // top 3 most sold
       let mostSold = () => {
-        let dataSort = countData.sort((a, b) => b.total_sales - a.total_sales);
+        let dataSort =
+          countData && countData.sort((a, b) => b.total_sales - a.total_sales);
         return dataSort.slice(0, 3);
       };
 
@@ -142,10 +150,10 @@ module.exports = {
         data: response,
         totalPage: Math.ceil(count / render),
         startNumber,
-        capital: capital.capital,
-        revenue: total_bill.total_bill,
-        profit: total_bill.total_bill - capital.capital,
-        sales: total_sales.total_sales,
+        capital: capital ? capital.capital : 0,
+        revenue: total_bill ? total_bill.total_bill : 0,
+        profit: total_bill ? total_bill.total_bill - capital.capital : 0,
+        sales: total_sales ? total_sales.total_sales : 0,
         mostSold: mostSold(),
       });
     } catch (error) {
