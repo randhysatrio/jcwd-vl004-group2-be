@@ -28,7 +28,7 @@ app.use(express.json());
 app.use(bearerToken());
 app.use(
   cookieSession({
-    name: "heizenberg-cookie",
+    name: 'heizenberg-cookie',
     keys: [process.env.COOKIE_KEY],
   })
 );
@@ -39,7 +39,7 @@ app.use(passport.session());
   try {
     await sequelize.authenticate();
     // await sequelize.sync({ alter: true });
-    console.log("sequelize connection success!");
+    console.log('sequelize connection success!');
   } catch (error) {
     console.log(error);
   }
@@ -58,6 +58,7 @@ const {
   transactionAdminRouter,
   transactionUserRouter,
   messageRouter,
+  reportRouter,
 } = require('./routers');
 
 app.use('/public', express.static('public'));
@@ -67,6 +68,7 @@ app.use('/category', categoryRouter);
 app.use('/deliveryoption', deliveryOptionRouter);
 app.use('/admin/auth', authAdminRouters);
 app.use('/admin/transaction', transactionAdminRouter);
+app.use('/admin/report', reportRouter);
 app.use('/product', productRouter);
 app.use('/cart', cartRouter);
 app.use('/user', userRouter);
@@ -97,7 +99,9 @@ io.on('connection', (socket) => {
       console.log(users);
       console.log(admins);
 
-      const totalNotif = await Message.count({ where: { userId, to: 'user', is_new: true } });
+      const totalNotif = await Message.count({
+        where: { userId, to: 'user', is_new: true },
+      });
 
       if (totalNotif) {
         io.to(socket.id).emit('newUserNotif', totalNotif);
@@ -110,7 +114,9 @@ io.on('connection', (socket) => {
       admins.push({ id: adminId, socketId: socket.id });
       console.log(users);
       console.log(admins);
-      const totalNotif = await Message.count({ where: { to: 'admin', is_new: true } });
+      const totalNotif = await Message.count({
+        where: { to: 'admin', is_new: true },
+      });
 
       if (totalNotif) {
         io.to(socket.id).emit('newAdminNotif', totalNotif);
@@ -120,9 +126,13 @@ io.on('connection', (socket) => {
 
   socket.on('adminNotif', async () => {
     if (admins.length) {
-      const totalNotif = await Message.count({ where: { to: 'admin', is_new: true } });
+      const totalNotif = await Message.count({
+        where: { to: 'admin', is_new: true },
+      });
 
-      admins.forEach((admin) => io.to(admin.socketId).emit('newAdminNotif', totalNotif));
+      admins.forEach((admin) =>
+        io.to(admin.socketId).emit('newAdminNotif', totalNotif)
+      );
     }
   });
 
@@ -130,7 +140,9 @@ io.on('connection', (socket) => {
     const userData = users.find((user) => user.id === userId);
 
     if (userData) {
-      const totalNotif = await Message.count({ where: { userId, to: 'user', is_new: true } });
+      const totalNotif = await Message.count({
+        where: { userId, to: 'user', is_new: true },
+      });
 
       io.to(userData.socketId).emit('newUserNotif', totalNotif);
     }
@@ -148,5 +160,9 @@ io.on('connection', (socket) => {
   });
 });
 
-app.listen(process.env.PORT, () => console.log(`API running at port ${process.env.PORT}`));
-httpServer.listen(process.env.PORT_SOCKET, () => console.log(`Socket.io Server running at Port ${process.env.PORT_SOCKET}`));
+app.listen(process.env.PORT, () =>
+  console.log(`API running at port ${process.env.PORT}`)
+);
+httpServer.listen(process.env.PORT_SOCKET, () =>
+  console.log(`Socket.io Server running at Port ${process.env.PORT_SOCKET}`)
+);
