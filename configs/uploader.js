@@ -31,7 +31,6 @@ module.exports = {
         }
         cb('Give proper files formate to upload');
       },
-      //   look for field "image"
     });
   },
   profileUploader: () => {
