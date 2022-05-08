@@ -6,6 +6,5 @@ router.post('/login', authAdminControllers.loginAdmin);
 router.post('/reset', authAdminControllers.reqResetPassword);
 router.patch('/change-password', auth, authAdminControllers.changePassword);
 router.post('/get', auth, authAdminControllers.getAdmin);
-router.post('/create', authAdminControllers.createAdmin);
 
 module.exports = router;

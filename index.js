@@ -59,6 +59,7 @@ const {
   transactionUserRouter,
   messageRouter,
   reportRouter,
+  adminRouter,
 } = require('./routers');
 
 app.use('/public', express.static('public'));
@@ -69,6 +70,7 @@ app.use('/deliveryoption', deliveryOptionRouter);
 app.use('/admin/auth', authAdminRouters);
 app.use('/admin/transaction', transactionAdminRouter);
 app.use('/admin/report', reportRouter);
+app.use('/admin/account', adminRouter);
 app.use('/product', productRouter);
 app.use('/cart', cartRouter);
 app.use('/user', userRouter);
@@ -121,6 +123,10 @@ io.on('connection', (socket) => {
       if (totalNotif) {
         io.to(socket.id).emit('newAdminNotif', totalNotif);
       }
+
+      if (admins.length) {
+        admins.forEach((admin) => io.to(admin.socketId).emit('newOnlineAdmin', { data: admins }));
+      }
     }
   });
 
@@ -130,9 +136,7 @@ io.on('connection', (socket) => {
         where: { to: 'admin', is_new: true },
       });
 
-      admins.forEach((admin) =>
-        io.to(admin.socketId).emit('newAdminNotif', totalNotif)
-      );
+      admins.forEach((admin) => io.to(admin.socketId).emit('newAdminNotif', totalNotif));
     }
   });
 
@@ -148,11 +152,17 @@ io.on('connection', (socket) => {
     }
   });
 
+  socket.on('getOnlineAdmin', () => {
+    io.to(socket.id).emit('onlineAdminData', { data: admins });
+  });
+
   socket.on('disconnect', () => {
     if (users.some((user) => user.socketId === socket.id)) {
       users = users.filter((user) => user.socketId !== socket.id);
     } else {
       admins = admins.filter((admin) => admin.socketId !== socket.id);
+
+      admins.forEach((admin) => io.to(admin.socketId).emit('offlineAdmin', { data: admins }));
     }
     console.log(`${socket.id} has disconnected`);
     console.log(users);
@@ -160,9 +170,5 @@ io.on('connection', (socket) => {
   });
 });
 
-app.listen(process.env.PORT, () =>
-  console.log(`API running at port ${process.env.PORT}`)
-);
-httpServer.listen(process.env.PORT_SOCKET, () =>
-  console.log(`Socket.io Server running at Port ${process.env.PORT_SOCKET}`)
-);
+app.listen(process.env.PORT, () => console.log(`API running at port ${process.env.PORT}`));
+httpServer.listen(process.env.PORT_SOCKET, () => console.log(`Socket.io Server running at Port ${process.env.PORT_SOCKET}`));

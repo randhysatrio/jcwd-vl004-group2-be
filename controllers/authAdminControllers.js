@@ -120,15 +120,4 @@ module.exports = {
       res.status(500).send({ message: error.message });
     }
   },
-  createAdmin: async (req, res) => {
-    try {
-      req.body.password = Crypto.createHmac('sha1', 'hash123').update(req.body.password).digest('hex');
-
-      await Admin.create(req.body);
-
-      res.status(201).send('Admin Account created successfully!');
-    } catch (err) {
-      res.status(500).send(err);
-    }
-  },
 };

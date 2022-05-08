@@ -26,6 +26,18 @@ const Admin = sequelize.define('admin', {
     type: DataTypes.STRING,
     defaultValue: 'public/images/profile/default.png',
   },
+  phone_number: {
+    type: DataTypes.STRING,
+    validate: {
+      is: {
+        args: /^(\+62|62)?[\s-]?0?8[1-9]{1}\d{1}[\s-]?\d{4}[\s-]?\d{2,5}$/,
+        msg: 'Please enter a valid phone number',
+      },
+    },
+  },
+  address: {
+    type: DataTypes.STRING(1024),
+  },
 });
 
 Admin.hasMany(Message);

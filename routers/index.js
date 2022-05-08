@@ -11,6 +11,7 @@ const checkoutRouter = require('./checkoutRouter');
 const transactionUserRouter = require('./transactionUserRouter');
 const messageRouter = require('./messageRouter');
 const reportRouter = require('./reportRouter');
+const adminRouter = require('./adminRouter');
 
 module.exports = {
   authAdminRouters,
@@ -26,4 +27,5 @@ module.exports = {
   transactionUserRouter,
   messageRouter,
   reportRouter,
+  adminRouter,
 };
