@@ -1,30 +1,40 @@
-const { Op } = require('sequelize');
-const InvoiceHeader = require('../models/InvoiceHeader');
-const InvoiceItem = require('../models/InvoiceItem');
-const User = require('../models/User');
-const Address = require('../models/Address');
-const Product = require('../models/Product');
-const DeliveryOption = require('../models/DeliveryOption');
-const PaymentProof = require('../models/PaymentProof');
+const { Op } = require("sequelize");
+const InvoiceHeader = require("../models/InvoiceHeader");
+const InvoiceItem = require("../models/InvoiceItem");
+const User = require("../models/User");
+const Address = require("../models/Address");
+const Product = require("../models/Product");
+const DeliveryOption = require("../models/DeliveryOption");
+const PaymentProof = require("../models/PaymentProof");
 
 module.exports = {
   getTransaction: async (req, res) => {
     try {
-      let search = req.body.search ? req.body.search : '';
+      // sort and { sort } is different
+      const { sort } = req.body;
+      let search = req.body.search ? req.body.search : "";
       let page = req.body.page ? req.body.page : 1;
       page = parseInt(page);
       let render = 5;
       let start = (page - 1) * render;
       let startNumber = render * page - render;
 
+      const query = {
+        render,
+      };
+
+      if (sort) {
+        query.order = [sort.split(",")];
+      }
+
       const count = await InvoiceHeader.count({
         where: {
           [Op.or]: {
             status: { [Op.like]: `%${search}%` },
             notes: { [Op.like]: `%${search}%` },
-            '$user.name$': { [Op.like]: `%${search}%` },
-            '$address.address$': { [Op.like]: `%${search}%` },
-            '$deliveryoption.name$': { [Op.like]: `%${search}%` },
+            "$user.name$": { [Op.like]: `%${search}%` },
+            "$address.address$": { [Op.like]: `%${search}%` },
+            "$deliveryoption.name$": { [Op.like]: `%${search}%` },
           },
         },
         include: [
@@ -35,13 +45,14 @@ module.exports = {
       });
 
       const response = await InvoiceHeader.findAll({
+        ...query,
         where: {
           [Op.or]: {
             status: { [Op.like]: `%${search}%` },
             notes: { [Op.like]: `%${search}%` },
-            '$user.name$': { [Op.like]: `%${search}%` },
-            '$address.address$': { [Op.like]: `%${search}%` },
-            '$deliveryoption.name$': { [Op.like]: `%${search}%` },
+            "$user.name$": { [Op.like]: `%${search}%` },
+            "$address.address$": { [Op.like]: `%${search}%` },
+            "$deliveryoption.name$": { [Op.like]: `%${search}%` },
           },
         },
         include: [
@@ -53,7 +64,7 @@ module.exports = {
         ],
         offset: start,
         limit: render,
-        order: [['createdAt', 'DESC']],
+        // order: [["createdAt", "DESC"]],
       });
 
       res.status(200).send({
