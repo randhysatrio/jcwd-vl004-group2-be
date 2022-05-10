@@ -11,7 +11,7 @@ module.exports = {
   getTransaction: async (req, res) => {
     try {
       // sort and { sort } is different
-      const { sort } = req.body;
+      let { sort, startDate, endDate } = req.body;
       let search = req.body.search ? req.body.search : "";
       let page = req.body.page ? req.body.page : 1;
       page = parseInt(page);
@@ -25,7 +25,26 @@ module.exports = {
 
       if (sort) {
         query.order = [sort.split(",")];
+      } else {
+        query.order = [["createdAt", "DESC"]];
       }
+
+      // date settings
+      let fullDate = new Date();
+      let date = `0${fullDate.getDate()}`;
+      let month = `0${fullDate.getMonth() + 1}`;
+      let year = fullDate.getFullYear();
+
+      // date;
+      startDate = startDate
+        ? new Date(startDate)
+        : new Date(`${year}-${month}-01`);
+      startDate.setUTCHours(0, 0, 0, 0);
+
+      endDate = endDate
+        ? new Date(endDate)
+        : new Date(`${year}-${month}-${date}`);
+      endDate.setUTCHours(23, 59, 59, 999);
 
       const count = await InvoiceHeader.count({
         where: {
@@ -54,6 +73,15 @@ module.exports = {
             "$address.address$": { [Op.like]: `%${search}%` },
             "$deliveryoption.name$": { [Op.like]: `%${search}%` },
           },
+          // [Op.and]: {
+          //   createdAt: {
+          //     [Op.lt]: endDate,
+          //     [Op.gt]: startDate,
+          //   },
+          // },
+          createdAt: {
+            [Op.between]: [startDate, endDate],
+          },
         },
         include: [
           { model: User, required: true },
@@ -74,6 +102,42 @@ module.exports = {
       });
     } catch (error) {
       res.status(500).send({ message: error.message });
+    }
+  },
+  statusApproved: async (req, res) => {
+    try {
+      const transaction = await InvoiceHeader.findByPk(req.params.id);
+      if (transaction.status === "pending") {
+        await InvoiceHeader.update(
+          {
+            status: "approved",
+          },
+          {
+            where: { id: req.params.id },
+          }
+        );
+      }
+      res.status(200).send(transaction);
+    } catch (error) {
+      res.status(500).send(error);
+    }
+  },
+  statusRejected: async (req, res) => {
+    try {
+      const transaction = await InvoiceHeader.findByPk(req.params.id);
+      if (transaction.status === "pending") {
+        await InvoiceHeader.update(
+          {
+            status: "rejected",
+          },
+          {
+            where: { id: req.params.id },
+          }
+        );
+      }
+      res.status(200).send(transaction);
+    } catch (error) {
+      res.status(500).send(error);
     }
   },
 };
