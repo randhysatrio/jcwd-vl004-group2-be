@@ -2,7 +2,6 @@ const sequelize = require('../configs/sequelize');
 const { DataTypes } = require('sequelize');
 
 const Like = require('./Like');
-const Dislike = require('./Dislike');
 
 const Review = sequelize.define('review', {
   title: {
@@ -27,8 +26,5 @@ const Review = sequelize.define('review', {
 
 Review.hasMany(Like, { onDelete: 'CASCADE' });
 Like.belongsTo(Review);
-
-Review.hasMany(Dislike, { onDelete: 'CASCADE' });
-Dislike.belongsTo(Review);
 
 module.exports = Review;
