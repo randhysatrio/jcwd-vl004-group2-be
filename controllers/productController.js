@@ -1,7 +1,10 @@
-const { Op } = require("sequelize");
-const Product = require("../models/Product");
-const Category = require("../models/Category");
-const fs = require("fs");
+const { Op } = require('sequelize');
+const Product = require('../models/Product');
+const Category = require('../models/Category');
+const fs = require('fs');
+const Review = require('../models/Review');
+const Like = require('../models/Like');
+const sequelize = require('../configs/sequelize');
 
 module.exports = {
   add: async (req, res) => {
@@ -89,6 +92,21 @@ module.exports = {
 
       let { count, rows } = await Product.findAndCountAll({
         ...query,
+        attributes: [
+          'id',
+          'name',
+          'price_buy',
+          'price_sell',
+          'stock',
+          'unit',
+          'volume',
+          'stock_in_unit',
+          'description',
+          'image',
+          'appearance',
+          [sequelize.literal(`(SELECT COUNT(*) FROM reviews WHERE reviews.productId = product.id)`), 'totalReviews'],
+          [sequelize.literal(`(SELECT AVG(reviews.rating) FROM reviews WHERE reviews.productId = product.id)`), 'avgRating'],
+        ],
         include: Category,
       });
 
@@ -116,8 +134,23 @@ module.exports = {
   getProductById: async (req, res) => {
     try {
       const product = await Product.findByPk(req.params.id, {
+        attributes: [
+          'id',
+          'name',
+          'price_sell',
+          'stock',
+          'unit',
+          'volume',
+          'stock_in_unit',
+          'description',
+          'image',
+          'appearance',
+          [sequelize.literal(`(SELECT COUNT(*) FROM reviews WHERE reviews.productId = product.id)`), 'totalReviews'],
+          [sequelize.literal(`(SELECT AVG(reviews.rating) FROM reviews WHERE reviews.productId = product.id)`), 'avgRating'],
+        ],
         include: Category,
       });
+
       res.status(200).send(product);
     } catch (err) {
       res.status(500).send(err);
@@ -140,7 +173,7 @@ module.exports = {
       if (req.file) {
         fs.unlinkSync(oldData.image);
       }
-      res.status(200).send("Product edited successfully!");
+      res.status(200).send('Product edited successfully!');
     } catch (error) {
       console.log(error);
       res.status(500).send(error);

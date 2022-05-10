@@ -5,6 +5,9 @@ const Address = require('./Address');
 const Cart = require('./Cart');
 const InvoiceHeader = require('./InvoiceHeader');
 const Message = require('./Message');
+const Review = require('./Review');
+const Like = require('./Like');
+const Dislike = require('./Dislike');
 
 const User = sequelize.define('user', {
   name: {
@@ -88,5 +91,14 @@ InvoiceHeader.belongsTo(User);
 
 User.hasMany(Message);
 Message.belongsTo(User);
+
+User.hasMany(Review);
+Review.belongsTo(User);
+
+User.hasMany(Like);
+Like.belongsTo(User);
+
+User.hasMany(Dislike);
+Dislike.belongsTo(User);
 
 module.exports = User;
