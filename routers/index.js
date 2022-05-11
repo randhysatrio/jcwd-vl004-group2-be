@@ -12,6 +12,7 @@ const transactionUserRouter = require('./transactionUserRouter');
 const messageRouter = require('./messageRouter');
 const reportRouter = require('./reportRouter');
 const adminRouter = require('./adminRouter');
+const reviewRouter = require('./reviewRouter');
 
 module.exports = {
   authAdminRouters,
@@ -28,4 +29,5 @@ module.exports = {
   messageRouter,
   reportRouter,
   adminRouter,
+  reviewRouter,
 };

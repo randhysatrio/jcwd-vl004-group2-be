@@ -60,6 +60,7 @@ const {
   messageRouter,
   reportRouter,
   adminRouter,
+  reviewRouter,
 } = require('./routers');
 
 app.use('/public', express.static('public'));
@@ -77,6 +78,7 @@ app.use('/user', userRouter);
 app.use('/checkout', checkoutRouter);
 app.use('/history', transactionUserRouter);
 app.use('/message', messageRouter);
+app.use('/review', reviewRouter);
 
 // Socket.io
 app.use('/', (req, res) => {
