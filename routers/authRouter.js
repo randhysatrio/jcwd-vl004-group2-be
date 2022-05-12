@@ -2,6 +2,7 @@ const router = require('express').Router();
 const passport = require('passport');
 const CLIENT_URL = 'http://localhost:3000/';
 const { createToken, verifyToken, verifyPasswordToken, verifyVerificationToken } = require('../configs/jwtuser');
+const Cart = require('../models/Cart');
 
 const { authController } = require('../controllers');
 
@@ -22,7 +23,7 @@ router.get(
   })
 );
 
-router.get('/login/success', (req, res) => {
+router.get('/login/success', async (req, res) => {
   if (req.user) {
     const token = createToken({
       id: req.user.id,
@@ -30,7 +31,9 @@ router.get('/login/success', (req, res) => {
       email: req.user.email,
     });
 
-    res.status(200).send({ user: req.user, token });
+    const cartTotal = await Cart.count({ where: { userId : req.user.id }})
+
+    res.status(200).send({ user: req.user, token, cartTotal });
   } else {
     res.send({ ignore: true });
   }

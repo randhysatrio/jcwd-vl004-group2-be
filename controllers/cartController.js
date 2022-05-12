@@ -1,6 +1,78 @@
 const Cart = require('../models/Cart');
 const Product = require('../models/Product');
-const User = require('../models/User');
+const sequelize = require('../configs/sequelize');
+const { Op } = require('sequelize');
+
+const getNewCart = async (page, userId, res, message) => {
+  let render = 5;
+  let start = (page - 1) * render;
+
+  // find qty > stock in volume
+  const stockChanged = await Cart.findAll({
+    where: {
+      userId,
+      quantity: {
+        [Op.gt]: sequelize.col('product.stock_in_unit'),
+      },
+      '$product.stock_in_unit$': { [Op.not]: 0 },
+    },
+    include: [{ model: Product, attributes: ['stock_in_unit'] }],
+  });
+
+  // update quantity if qty > stock in volume
+  for (let i = 0; i < stockChanged.length; i++) {
+    stockChanged[i].quantity = stockChanged[i].product.stock_in_unit;
+    stockChanged[i].isChecked = false;
+    await stockChanged[i].save();
+  }
+
+  // find stock in volume 0 or deleted
+  const notAvailable = await Cart.findAll({
+    where: {
+      userId,
+      [Op.or]: {
+        '$product.stock_in_unit$': 0,
+        '$product.deletedAt$': { [Op.not]: null },
+      },
+    },
+    include: [{ model: Product, paranoid: false }],
+  });
+
+  // get checkout items
+  const checkoutItems = await Cart.findAll({
+    where: {
+      userId,
+      isChecked: true,
+      '$product.stock_in_unit$': { [Op.not]: 0 },
+      '$product.deletedAt$': null,
+    },
+    include: [{ model: Product, paranoid: false }],
+  });
+
+  // get cart data with limit & count all cart
+  const { count, rows } = await Cart.findAndCountAll({
+    where: {
+      userId,
+      '$product.stock_in_unit$': { [Op.not]: 0 },
+      '$product.deletedAt$': null,
+    },
+    include: [{ model: Product, paranoid: false }],
+    offset: start,
+    limit: render,
+    order: [['createdAt', 'DESC']],
+  });
+
+  res.status(200).send({
+    cartList: rows,
+    checkoutItems,
+    notAvailable,
+    isCheckedAll: checkoutItems.length === count,
+    cartTotal: count,
+    total_page: Math.ceil(count / render),
+    active_page: page,
+    message,
+  });
+};
 
 module.exports = {
   add: async (req, res) => {
@@ -25,9 +97,9 @@ module.exports = {
         if (userCart.quantity + quantity > userCart.product.stock_in_unit) {
           return res.send({
             conflict: true,
-            message: `Cannot update this cart item quantity as you already had ${userCart.quantity.toLocaleString('id')} ${
-              userCart.product.unit
-            } in your cart`,
+            message: `Cannot update this cart item quantity as you already had ${userCart.quantity.toLocaleString(
+              'id'
+            )} ${userCart.product.unit} in your cart`,
           });
         } else {
           userCart.quantity = userCart.quantity + quantity;
@@ -47,53 +119,22 @@ module.exports = {
   },
   getCart: async (req, res) => {
     try {
-      let page = req.query.page ? req.query.page : 1;
-      page = parseInt(page);
-      let render = 5;
-      let start = (page - 1) * render;
-
+      let page = req.query.page ? parseInt(req.query.page) : 1;
+      getNewCart(page, req.user.id, res);
+    } catch (error) {
+      res.status(500).send({ message: error.message });
+    }
+  },
+  getTotal: async (req, res) => {
+    try {
       const count = await Cart.count({
         where: {
-          userId: req.params.id,
+          userId: req.user.id,
         },
-      });
-
-      const checkoutItems = await Cart.findAll({
-        include: [Product],
-        where: {
-          userId: req.params.id,
-          isChecked: true,
-        },
-      });
-
-      const notCheckedAll = await Cart.count({
-        where: {
-          userId: req.params.id,
-          isChecked: false,
-        },
-      });
-
-      const response = await User.findOne({
-        where: {
-          id: req.params.id,
-        },
-        include: [
-          {
-            model: Cart,
-            include: [Product],
-            offset: start,
-            limit: render,
-          },
-        ],
       });
 
       res.status(200).send({
-        cartList: response.carts,
-        checkoutItems: checkoutItems,
-        isCheckedAll: notCheckedAll ? false : true,
-        total_data: count,
-        total_page: Math.ceil(count / render),
-        active_page: page,
+        cartTotal: count,
       });
     } catch (error) {
       res.status(500).send({ message: error.message });
@@ -102,14 +143,17 @@ module.exports = {
   deleteCart: async (req, res) => {
     try {
       let { id } = req.params;
+      let page = req.query.page ? parseInt(req.query.page) : 1;
 
+      // delete cart item
       await Cart.destroy({
         where: {
           id,
         },
       });
 
-      res.status(200).send({ message: 'Cart item deleted' });
+      // return new cart data
+      getNewCart(page, req.user.id, res, 'Item deleted');
     } catch (error) {
       res.status(500).send({ message: error.message });
     }
@@ -117,6 +161,7 @@ module.exports = {
   updateCart: async (req, res) => {
     try {
       const { quantity, id } = req.body;
+      let page = req.query.page ? parseInt(req.query.page) : 1;
 
       // Update cart quantity
       await Cart.update(
@@ -128,7 +173,8 @@ module.exports = {
         }
       );
 
-      res.status(201).send({ message: 'Cart quantity item updated' });
+      // return new cart data
+      getNewCart(page, req.user.id, res, 'Quantity item updated');
     } catch (error) {
       res.status(500).send({ message: error.message });
     }
@@ -136,6 +182,7 @@ module.exports = {
   updateChecked: async (req, res) => {
     try {
       const { isChecked, id } = req.body;
+      let page = req.query.page ? parseInt(req.query.page) : 1;
 
       // Update cart isChecked
       await Cart.update(
@@ -147,34 +194,29 @@ module.exports = {
         }
       );
 
-      res.status(201).send({ message: 'Cart isChecked item updated' });
+      // return new cart data
+      getNewCart(page, req.user.id, res, 'isChecked item updated');
     } catch (error) {
       res.status(500).send({ message: error.message });
     }
   },
   updateCheckedAll: async (req, res) => {
     try {
-      const { isCheckedAll, userId } = req.body;
+      const { isCheckedAll } = req.body;
+      let page = req.query.page ? parseInt(req.query.page) : 1;
 
-      const dataUpdate = await Cart.findAll({
-        where: {
-          userId,
-          isChecked: isCheckedAll,
-        },
-      });
+      await Cart.update(
+        { isChecked: !isCheckedAll },
+        {
+          where: {
+            userId: req.user.id,
+            isChecked: isCheckedAll,
+          },
+        }
+      );
 
-      await dataUpdate.map((item) => {
-        Cart.update(
-          { isChecked: !isCheckedAll },
-          {
-            where: {
-              id: item.id,
-            },
-          }
-        );
-      });
-
-      res.status(201).send({ message: 'Cart isChecked item updated' });
+      // return new cart data
+      getNewCart(page, req.user.id, res, 'isChecked item updated');
     } catch (error) {
       res.status(500).send({ message: error.message });
     }
