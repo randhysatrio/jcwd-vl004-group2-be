@@ -7,6 +7,8 @@ const cookieSession = require('cookie-session');
 const bearerToken = require('express-bearer-token');
 const { createServer } = require('http');
 const { Server } = require('socket.io');
+const expressHandlebars = require('express-handlebars');
+const { format } = require('date-fns');
 require('./configs/passport');
 
 const app = express();
@@ -24,6 +26,32 @@ app.use(
     credentials: true,
   })
 );
+
+const hbs = expressHandlebars.create({
+  helpers: {
+    currency: function (val) {
+      if (typeof val === 'number') {
+        return val.toLocaleString('id');
+      } else {
+        const int = parseInt(val);
+
+        return int.toLocaleString('id');
+      }
+    },
+    date: function (dateString) {
+      const date = new Date(dateString);
+
+      return format(date, 'PPP');
+    },
+    grandTotal: function (a, b) {
+      return (parseInt(a) + b).toLocaleString('id');
+    },
+  },
+});
+app.engine('handlebars', hbs.engine);
+app.set('view engine', 'handlebars');
+app.set('views', './views');
+
 app.use(express.json());
 app.use(bearerToken());
 app.use(
