@@ -1,20 +1,19 @@
-const { Op } = require("sequelize");
-const InvoiceHeader = require("../models/InvoiceHeader");
-const InvoiceItem = require("../models/InvoiceItem");
-const User = require("../models/User");
-const Address = require("../models/Address");
-const Product = require("../models/Product");
-const DeliveryOption = require("../models/DeliveryOption");
-const PaymentProof = require("../models/PaymentProof");
+const { Op } = require('sequelize');
+const InvoiceHeader = require('../models/InvoiceHeader');
+const InvoiceItem = require('../models/InvoiceItem');
+const User = require('../models/User');
+const Address = require('../models/Address');
+const Product = require('../models/Product');
+const DeliveryOption = require('../models/DeliveryOption');
+const PaymentProof = require('../models/PaymentProof');
 
 module.exports = {
   getTransaction: async (req, res) => {
     try {
       // sort and { sort } is different
       let { sort, startDate, endDate } = req.body;
-      let search = req.body.search ? req.body.search : "";
-      let page = req.body.page ? req.body.page : 1;
-      page = parseInt(page);
+      let search = req.body.search ? req.body.search : '';
+      let page = req.body.page ? parseInt(req.body.page) : 1;
       let render = 5;
       let start = (page - 1) * render;
       let startNumber = render * page - render;
@@ -24,9 +23,9 @@ module.exports = {
       };
 
       if (sort) {
-        query.order = [sort.split(",")];
+        query.order = [sort.split(',')];
       } else {
-        query.order = [["createdAt", "DESC"]];
+        query.order = [['createdAt', 'DESC']];
       }
 
       // date settings
@@ -46,39 +45,16 @@ module.exports = {
         : new Date(`${year}-${month}-${date}`);
       endDate.setUTCHours(23, 59, 59, 999);
 
-      const count = await InvoiceHeader.count({
-        where: {
-          [Op.or]: {
-            status: { [Op.like]: `%${search}%` },
-            notes: { [Op.like]: `%${search}%` },
-            "$user.name$": { [Op.like]: `%${search}%` },
-            "$address.address$": { [Op.like]: `%${search}%` },
-            "$deliveryoption.name$": { [Op.like]: `%${search}%` },
-          },
-        },
-        include: [
-          { model: User, required: true },
-          { model: Address, required: true },
-          { model: DeliveryOption, required: true },
-        ],
-      });
-
-      const response = await InvoiceHeader.findAll({
+      const { count, rows } = await InvoiceHeader.findAndCountAll({
         ...query,
         where: {
           [Op.or]: {
             status: { [Op.like]: `%${search}%` },
             notes: { [Op.like]: `%${search}%` },
-            "$user.name$": { [Op.like]: `%${search}%` },
-            "$address.address$": { [Op.like]: `%${search}%` },
-            "$deliveryoption.name$": { [Op.like]: `%${search}%` },
+            '$user.name$': { [Op.like]: `%${search}%` },
+            '$address.address$': { [Op.like]: `%${search}%` },
+            '$deliveryoption.name$': { [Op.like]: `%${search}%` },
           },
-          // [Op.and]: {
-          //   createdAt: {
-          //     [Op.lt]: endDate,
-          //     [Op.gt]: startDate,
-          //   },
-          // },
           createdAt: {
             [Op.between]: [startDate, endDate],
           },
@@ -90,13 +66,13 @@ module.exports = {
           { model: PaymentProof },
           { model: InvoiceItem, include: [Product] },
         ],
+        distinct: true,
         offset: start,
         limit: render,
-        // order: [["createdAt", "DESC"]],
       });
 
       res.status(200).send({
-        data: response,
+        data: rows,
         totalPage: Math.ceil(count / render),
         startNumber,
       });
@@ -107,10 +83,10 @@ module.exports = {
   statusApproved: async (req, res) => {
     try {
       const transaction = await InvoiceHeader.findByPk(req.params.id);
-      if (transaction.status === "pending") {
+      if (transaction.status === 'pending') {
         await InvoiceHeader.update(
           {
-            status: "approved",
+            status: 'approved',
           },
           {
             where: { id: req.params.id },
@@ -125,10 +101,10 @@ module.exports = {
   statusRejected: async (req, res) => {
     try {
       const transaction = await InvoiceHeader.findByPk(req.params.id);
-      if (transaction.status === "pending") {
+      if (transaction.status === 'pending') {
         await InvoiceHeader.update(
           {
-            status: "rejected",
+            status: 'rejected',
           },
           {
             where: { id: req.params.id },

@@ -13,7 +13,8 @@ const Message = require('../models/Message');
 module.exports = {
   addCheckout: async (req, res) => {
     try {
-      let { notes, addressId, userId, deliveryoptionId, orderItems } = req.body.dataCheckout;
+      let { notes, addressId, userId, deliveryoptionId, orderItems } =
+        req.body.dataCheckout;
 
       // create invoice header
       const newInvoiceHeader = await InvoiceHeader.create(
@@ -44,18 +45,31 @@ module.exports = {
         },
       });
 
+      // get new total cart
+      const count = await Cart.count({
+        where: {
+          userId: req.user.id,
+        },
+      });
+
       // update stock in product
       await orderItems.map((item) => {
         Product.update(
           {
             stock_in_unit: item.product.stock_in_unit - item.quantity,
-            stock: Math.ceil(item.product.stock_in_unit / item.product.volume),
+            stock: Math.floor(
+              (item.product.stock_in_unit - item.quantity) / item.product.volume
+            ),
           },
           { where: { id: item.product.id } }
         );
       });
 
-      res.status(201).send({ message: 'Checkout added', invoice: newInvoiceHeader.id });
+      res.status(201).send({
+        message: 'Checkout added',
+        invoice: newInvoiceHeader.id,
+        cartTotal: count,
+      });
     } catch (error) {
       res.status(500).send({ message: error.message });
     }
@@ -69,21 +83,10 @@ module.exports = {
       res.status(500).send({ message: error.message });
     }
   },
-  getPhone: async (req, res) => {
-    try {
-      const response = await User.findOne({
-        where: { id: req.params.id },
-        raw: true,
-      });
-
-      res.status(200).send({ data: response.phone_number });
-    } catch (error) {
-      res.status(500).send({ message: error.message });
-    }
-  },
   editPhone: async (req, res) => {
     try {
       const { phone_number } = req.body;
+
       await User.update({ phone_number }, { where: { id: req.params.id } });
 
       res.status(200).send({ message: 'Phone number updated' });
@@ -105,35 +108,6 @@ module.exports = {
       });
 
       res.status(200).send({ message: 'New address added' });
-    } catch (error) {
-      res.status(500).send({ message: error.message });
-    }
-  },
-  selectAddress: async (req, res) => {
-    try {
-      const { id, lastId } = req.body;
-
-      // update new selected default
-      await Address.update(
-        { is_default: true },
-        {
-          where: {
-            id,
-          },
-        }
-      );
-
-      // update last selected to not default
-      await Address.update(
-        { is_default: false },
-        {
-          where: {
-            id: lastId,
-          },
-        }
-      );
-
-      res.status(200).send({ message: 'Address selected' });
     } catch (error) {
       res.status(500).send({ message: error.message });
     }
@@ -180,7 +154,6 @@ module.exports = {
             fs.unlinkSync('./public' + filepath);
           }
         } catch (error) {
-          console.log('error ini');
           res.status(500).send({ message: error.message });
         }
       });

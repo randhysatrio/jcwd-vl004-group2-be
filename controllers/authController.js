@@ -2,6 +2,7 @@ require('dotenv').config();
 const { createToken, createVerificationToken, createPasswordToken } = require('../configs/jwtuser');
 const transporter = require('../configs/nodemailer');
 const User = require('../models/User');
+const Cart = require('../models/Cart');
 const Crypto = require('crypto');
 
 module.exports = {
@@ -71,6 +72,8 @@ module.exports = {
 
       const userData = await User.findOne({ where: { email, password } });
 
+      const cartTotal = await Cart.count({ where: { userId: userData.id }})
+
       if (!userData) {
         return res.send({ invalid: true });
       }
@@ -81,7 +84,7 @@ module.exports = {
         email: userData.email,
       });
 
-      res.status(200).send({ user: userData, token });
+      res.status(200).send({ user: userData, token, cartTotal });
     } catch (err) {
       res.status(500).send(err);
     }
@@ -98,7 +101,9 @@ module.exports = {
         email: userData.email,
       });
 
-      res.status(200).send({ user: userData, token });
+      const cartTotal = await Cart.count({ where: { userId: id }})
+
+      res.status(200).send({ user: userData, token, cartTotal });
     } catch (err) {
       res.status(500).send(err);
     }

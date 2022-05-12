@@ -6,10 +6,9 @@ const { Op } = require('sequelize');
 module.exports = {
   getReport: async (req, res) => {
     try {
-      let { search, startDate, endDate } = req.query;
+      let { search, startDate, endDate, page } = req.body;
       search = search ? search : '';
-      let page = req.query.page ? req.query.page : 1;
-      page = parseInt(page);
+      page = page ? parseInt(page) : 1;
       let render = 5;
       let start = (page - 1) * render;
       let startNumber = render * page - render;
@@ -131,13 +130,11 @@ module.exports = {
           ],
         ],
         where: {
-          [Op.and]: {
-            createdAt: {
-              [Op.lt]: endDate,
-              [Op.gt]: startDate,
-            },
-            '$product.name$': { [Op.like]: `%${search}%` },
+          createdAt: {
+            [Op.lt]: endDate,
+            [Op.gt]: startDate,
           },
+          '$product.name$': { [Op.like]: `%${search}%` },
         },
         include: [{ model: Product, attributes: [] }],
         raw: true,
