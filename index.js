@@ -43,6 +43,12 @@ const hbs = expressHandlebars.create({
 
       return format(date, 'PPP');
     },
+    approved: function (val) {
+      return val === 'approved';
+    },
+    rejected: function (val) {
+      return val === 'rejected';
+    },
     grandTotal: function (a, b) {
       return (parseInt(a) + b).toLocaleString('id');
     },
@@ -155,9 +161,7 @@ io.on('connection', (socket) => {
       }
 
       if (admins.length) {
-        admins.forEach((admin) =>
-          io.to(admin.socketId).emit('newOnlineAdmin', { data: admins })
-        );
+        admins.forEach((admin) => io.to(admin.socketId).emit('newOnlineAdmin', { data: admins }));
       }
     }
   });
@@ -168,9 +172,7 @@ io.on('connection', (socket) => {
         where: { to: 'admin', is_new: true },
       });
 
-      admins.forEach((admin) =>
-        io.to(admin.socketId).emit('newAdminNotif', totalNotif)
-      );
+      admins.forEach((admin) => io.to(admin.socketId).emit('newAdminNotif', totalNotif));
     }
   });
 
@@ -196,9 +198,7 @@ io.on('connection', (socket) => {
     } else {
       admins = admins.filter((admin) => admin.socketId !== socket.id);
 
-      admins.forEach((admin) =>
-        io.to(admin.socketId).emit('offlineAdmin', { data: admins })
-      );
+      admins.forEach((admin) => io.to(admin.socketId).emit('offlineAdmin', { data: admins }));
     }
     console.log(`${socket.id} has disconnected`);
     console.log(users);
@@ -206,9 +206,5 @@ io.on('connection', (socket) => {
   });
 });
 
-app.listen(process.env.PORT, () =>
-  console.log(`API running at port ${process.env.PORT}`)
-);
-httpServer.listen(process.env.PORT_SOCKET, () =>
-  console.log(`Socket.io Server running at Port ${process.env.PORT_SOCKET}`)
-);
+app.listen(process.env.PORT, () => console.log(`API running at port ${process.env.PORT}`));
+httpServer.listen(process.env.PORT_SOCKET, () => console.log(`Socket.io Server running at Port ${process.env.PORT_SOCKET}`));

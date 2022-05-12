@@ -1,6 +1,6 @@
 const { Op } = require('sequelize');
 const sequelize = require('../configs/sequelize');
-const { generatePdf } = require('../configs/puppeteer');
+const path = require('path');
 
 const InvoiceHeader = require('../models/InvoiceHeader');
 const InvoiceItem = require('../models/InvoiceItem');
@@ -44,6 +44,7 @@ module.exports = {
           'id',
           'notes',
           'is_received',
+          'invoice_path',
           'createdAt',
           'status',
           [
@@ -109,6 +110,7 @@ module.exports = {
         attributes: [
           'id',
           'notes',
+          'status',
           'createdAt',
           [
             sequelize.literal(`(SELECT SUM(price * quantity) FROM invoiceitems WHERE invoiceitems.invoiceheaderId = invoiceheader.id)`),
@@ -128,6 +130,15 @@ module.exports = {
       });
 
       res.render('invoice', { data: data.toJSON() });
+    } catch (err) {
+      res.status(500).send(err);
+    }
+  },
+  downloadInvoice: async (req, res) => {
+    try {
+      const { path } = req.query;
+
+      res.download(path);
     } catch (err) {
       res.status(500).send(err);
     }

@@ -4,9 +4,9 @@ const path = require('path');
 const puppeteer = require('puppeteer');
 
 module.exports = {
-  generatePdf: async (req, res) => {
+  generatePdf: async (data) => {
     try {
-      const url = `${process.env.API_URL}/history/invoice/view/${req.params.id}`;
+      const url = `${process.env.API_URL}/history/invoice/view/${data.id}`;
 
       const filepath = () => {
         const path = './public/pdf';
@@ -24,7 +24,7 @@ module.exports = {
         }
       };
 
-      const pdfPath = path.join(`${filepath()}`, `pdf_invoice_${req.params.id}_${Date.now()}.pdf`);
+      const pdfPath = path.join(filepath(), `${data.user.name}_invoice_${data.id}.pdf`);
 
       const browser = await puppeteer.launch();
 
@@ -42,9 +42,8 @@ module.exports = {
 
       await browser.close();
 
-      res.download(pdfPath);
+      return pdfPath;
     } catch (err) {
-      console.log(err);
       res.status(500).send(err);
     }
   },
