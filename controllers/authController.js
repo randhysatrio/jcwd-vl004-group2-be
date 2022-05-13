@@ -41,7 +41,7 @@ module.exports = {
           <p>Hello, ${name}!</p>
           <br/>
           <p>Thank you for joining Heizen Berg Co.</p>
-          <P>We are glad to have you as part of the Heizen Berg. community!</p>
+          <P>We are glad to have you as part of the Heizen Berg Co. community!</p>
           <p>Please verify your account by clicking the link below:</p>
           <a href="http://localhost:3000/verify/${verificationToken}">Verify My Account</a>
           <br/>
@@ -72,7 +72,7 @@ module.exports = {
 
       const userData = await User.findOne({ where: { email, password } });
 
-      const cartTotal = await Cart.count({ where: { userId: userData.id }})
+      const cartTotal = await Cart.count({ where: { userId: userData.id } });
 
       if (!userData) {
         return res.send({ invalid: true });
@@ -101,7 +101,7 @@ module.exports = {
         email: userData.email,
       });
 
-      const cartTotal = await Cart.count({ where: { userId: id }})
+      const cartTotal = await Cart.count({ where: { userId: id } });
 
       res.status(200).send({ user: userData, token, cartTotal });
     } catch (err) {

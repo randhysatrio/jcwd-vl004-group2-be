@@ -1,5 +1,6 @@
 const { Op } = require('sequelize');
 const sequelize = require('../configs/sequelize');
+const path = require('path');
 
 const InvoiceHeader = require('../models/InvoiceHeader');
 const InvoiceItem = require('../models/InvoiceItem');
@@ -43,6 +44,7 @@ module.exports = {
           'id',
           'notes',
           'is_received',
+          'invoice_path',
           'createdAt',
           'status',
           [
@@ -51,12 +53,20 @@ module.exports = {
           ],
         ],
         include: [
-          { model: User, attributes: ['phone_number'] },
           {
             model: InvoiceItem,
-            include: [{ model: Product, include: Category, paranoid: false }],
+            attributes: ['price', 'quantity', 'subtotal'],
+            include: [
+              {
+                model: Product,
+                include: [{ model: Category, attributes: ['name'] }],
+                attributes: ['name', 'image', 'unit'],
+                paranoid: false,
+              },
+            ],
           },
-          { model: Address, paranoid: false },
+          { model: User, attributes: ['name', 'phone_number'] },
+          { model: Address, attributes: ['address', 'city', 'province', 'country', 'postalcode'], paranoid: false },
           { model: DeliveryOption, attributes: ['name', 'cost'], paranoid: false },
         ],
         order: [['createdAt', 'desc']],
@@ -88,6 +98,48 @@ module.exports = {
         res.status(200).send({ message: 'Thank you for letting us know you have received your order!', received: true });
       }
     } catch (error) {
+      res.status(500).send(err);
+    }
+  },
+  renderInvoice: async (req, res) => {
+    try {
+      const invoiceId = req.params.id;
+
+      const data = await InvoiceHeader.findOne({
+        where: { id: invoiceId },
+        attributes: [
+          'id',
+          'notes',
+          'status',
+          'createdAt',
+          [
+            sequelize.literal(`(SELECT SUM(price * quantity) FROM invoiceitems WHERE invoiceitems.invoiceheaderId = invoiceheader.id)`),
+            'total',
+          ],
+        ],
+        include: [
+          {
+            model: InvoiceItem,
+            attributes: ['price', 'quantity', 'subtotal'],
+            include: [{ model: Product, attributes: ['name', 'image', 'unit'], paranoid: false }],
+          },
+          { model: User, attributes: ['name', 'phone_number'] },
+          { model: Address, attributes: ['address', 'city', 'province', 'country', 'postalcode'], paranoid: false },
+          { model: DeliveryOption, attributes: ['name', 'cost'], paranoid: false },
+        ],
+      });
+
+      res.render('invoice', { data: data.toJSON() });
+    } catch (err) {
+      res.status(500).send(err);
+    }
+  },
+  downloadInvoice: async (req, res) => {
+    try {
+      const { path } = req.query;
+
+      res.download(path);
+    } catch (err) {
       res.status(500).send(err);
     }
   },

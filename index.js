@@ -7,6 +7,8 @@ const cookieSession = require('cookie-session');
 const bearerToken = require('express-bearer-token');
 const { createServer } = require('http');
 const { Server } = require('socket.io');
+const expressHandlebars = require('express-handlebars');
+const { format } = require('date-fns');
 require('./configs/passport');
 
 const app = express();
@@ -24,6 +26,38 @@ app.use(
     credentials: true,
   })
 );
+
+const hbs = expressHandlebars.create({
+  helpers: {
+    currency: function (val) {
+      if (typeof val === 'number') {
+        return val.toLocaleString('id');
+      } else {
+        const int = parseInt(val);
+
+        return int.toLocaleString('id');
+      }
+    },
+    date: function (dateString) {
+      const date = new Date(dateString);
+
+      return format(date, 'PPP');
+    },
+    approved: function (val) {
+      return val === 'approved';
+    },
+    rejected: function (val) {
+      return val === 'rejected';
+    },
+    grandTotal: function (a, b) {
+      return (parseInt(a) + b).toLocaleString('id');
+    },
+  },
+});
+app.engine('handlebars', hbs.engine);
+app.set('view engine', 'handlebars');
+app.set('views', './views');
+
 app.use(express.json());
 app.use(bearerToken());
 app.use(
@@ -127,9 +161,7 @@ io.on('connection', (socket) => {
       }
 
       if (admins.length) {
-        admins.forEach((admin) =>
-          io.to(admin.socketId).emit('newOnlineAdmin', { data: admins })
-        );
+        admins.forEach((admin) => io.to(admin.socketId).emit('newOnlineAdmin', { data: admins }));
       }
     }
   });
@@ -140,9 +172,7 @@ io.on('connection', (socket) => {
         where: { to: 'admin', is_new: true },
       });
 
-      admins.forEach((admin) =>
-        io.to(admin.socketId).emit('newAdminNotif', totalNotif)
-      );
+      admins.forEach((admin) => io.to(admin.socketId).emit('newAdminNotif', totalNotif));
     }
   });
 
@@ -168,9 +198,7 @@ io.on('connection', (socket) => {
     } else {
       admins = admins.filter((admin) => admin.socketId !== socket.id);
 
-      admins.forEach((admin) =>
-        io.to(admin.socketId).emit('offlineAdmin', { data: admins })
-      );
+      admins.forEach((admin) => io.to(admin.socketId).emit('offlineAdmin', { data: admins }));
     }
     console.log(`${socket.id} has disconnected`);
     console.log(users);
@@ -178,9 +206,5 @@ io.on('connection', (socket) => {
   });
 });
 
-app.listen(process.env.PORT, () =>
-  console.log(`API running at port ${process.env.PORT}`)
-);
-httpServer.listen(process.env.PORT_SOCKET, () =>
-  console.log(`Socket.io Server running at Port ${process.env.PORT_SOCKET}`)
-);
+app.listen(process.env.PORT, () => console.log(`API running at port ${process.env.PORT}`));
+httpServer.listen(process.env.PORT_SOCKET, () => console.log(`Socket.io Server running at Port ${process.env.PORT_SOCKET}`));

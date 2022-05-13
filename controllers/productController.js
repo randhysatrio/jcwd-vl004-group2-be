@@ -41,7 +41,7 @@ module.exports = {
   },
   query: async (req, res) => {
     try {
-      const { keyword, category, limit, offset, appearance, sort, gte, lte, between, exclude } = req.body;
+      const { keyword, category, limit, offset, appearance, sort, gte, lte, between, fromHome, fromAllProducts } = req.body;
 
       const query = {
         limit,
@@ -90,7 +90,7 @@ module.exports = {
         query.offset = offset;
       }
 
-      let { count, rows } = await Product.findAndCountAll({
+      const data = {
         ...query,
         attributes: [
           'id',
@@ -108,11 +108,39 @@ module.exports = {
           [sequelize.literal(`(SELECT AVG(reviews.rating) FROM reviews WHERE reviews.productId = product.id)`), 'avgRating'],
         ],
         include: Category,
-      });
+      };
 
-      if (exclude) {
-        rows = rows.filter((row) => row.id !== exclude);
+      if (fromHome) {
+        data.attributes = [
+          'id',
+          'name',
+          'image',
+          'price_sell',
+          'stock_in_unit',
+          'volume',
+          'unit',
+          [sequelize.literal(`(SELECT COUNT(*) FROM reviews WHERE reviews.productId = product.id)`), 'totalReviews'],
+          [sequelize.literal(`(SELECT AVG(reviews.rating) FROM reviews WHERE reviews.productId = product.id)`), 'avgRating'],
+        ];
       }
+
+      if (fromAllProducts) {
+        data.attributes = [
+          'id',
+          'name',
+          'image',
+          'description',
+          'price_sell',
+          'stock_in_unit',
+          'volume',
+          'unit',
+          [sequelize.literal(`(SELECT COUNT(*) FROM reviews WHERE reviews.productId = product.id)`), 'totalReviews'],
+          [sequelize.literal(`(SELECT AVG(reviews.rating) FROM reviews WHERE reviews.productId = product.id)`), 'avgRating'],
+        ];
+        data.include = [{ model: Category, attributes: ['name'] }];
+      }
+
+      let { count, rows } = await Product.findAndCountAll(data);
 
       res.status(200).send({ products: rows, length: count });
     } catch (err) {
@@ -133,25 +161,54 @@ module.exports = {
   },
   getProductById: async (req, res) => {
     try {
+      const { withRelated, limit } = req.body;
+
       const product = await Product.findByPk(req.params.id, {
         attributes: [
           'id',
           'name',
           'price_sell',
           'stock',
-          'unit',
           'volume',
+          'unit',
           'stock_in_unit',
           'description',
           'image',
           'appearance',
+          'categoryId',
           [sequelize.literal(`(SELECT COUNT(*) FROM reviews WHERE reviews.productId = product.id)`), 'totalReviews'],
           [sequelize.literal(`(SELECT AVG(reviews.rating) FROM reviews WHERE reviews.productId = product.id)`), 'avgRating'],
         ],
         include: Category,
       });
 
-      res.status(200).send(product);
+      const result = {
+        product,
+      };
+
+      let relatedProducts;
+
+      if (withRelated) {
+        relatedProducts = await Product.findAll({
+          where: { categoryId: product.categoryId },
+          attributes: [
+            'id',
+            'name',
+            'image',
+            'price_sell',
+            'stock_in_unit',
+            'volume',
+            'unit',
+            [sequelize.literal(`(SELECT COUNT(*) FROM reviews WHERE reviews.productId = product.id)`), 'totalReviews'],
+            [sequelize.literal(`(SELECT AVG(reviews.rating) FROM reviews WHERE reviews.productId = product.id)`), 'avgRating'],
+          ],
+          limit,
+        });
+
+        result.relatedProducts = relatedProducts.filter((product) => product.id !== req.params.id);
+      }
+
+      res.status(200).send(result);
     } catch (err) {
       res.status(500).send(err);
     }
