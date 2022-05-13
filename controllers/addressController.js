@@ -3,30 +3,27 @@ const Address = require('../models/Address');
 module.exports = {
   add: async (req, res) => {
     try {
-      const { address, city, province, country, postalcode, is_default } = req.body;
+      const { limit, data, currentPage } = req.body;
 
-      if (is_default) {
+      if (data.is_default) {
         await Address.update({ is_default: false }, { where: { userId: req.user.id } });
       }
 
-      await Address.create({
-        address,
-        city,
-        province,
-        country,
-        postalcode,
-        userId: req.user.id,
-        is_default,
-      });
+      await Address.create({ ...data, userId: req.user.id });
 
       const { rows, count } = await Address.findAndCountAll({
         where: { userId: req.user.id },
-        limit: 10,
-        offset: 0,
+        limit,
+        offset: currentPage * limit - limit,
         order: [['is_default', 'desc']],
       });
 
-      res.status(200).send({ message: 'Address created successfully!', rows, count });
+      res.status(200).send({
+        message: 'Address created successfully!',
+        rows,
+        maxPage: Math.ceil(count / limit) || 1,
+        count,
+      });
     } catch (err) {
       res.status(500).send(err);
     }
@@ -42,7 +39,7 @@ module.exports = {
         order: [['is_default', 'desc']],
       });
 
-      res.status(200).send({ rows, count });
+      res.status(200).send({ rows, maxPage: Math.ceil(count / limit) || 1, count });
     } catch (err) {
       res.status(500).send(err);
     }
@@ -60,12 +57,12 @@ module.exports = {
         order: [['is_default', 'desc']],
       });
 
-      res.status(200).send({ message: 'Address deleted successfully!', rows, count });
+      res.status(200).send({ message: 'Address deleted successfully!', rows, maxPage: Math.ceil(count / limit) || 1, count });
     } catch (err) {
       res.status(500).send(err);
     }
   },
-  update: async (req, res) => {
+  default: async (req, res) => {
     try {
       const { limit, currentPage } = req.body;
 
@@ -80,29 +77,18 @@ module.exports = {
         order: [['is_default', 'desc']],
       });
 
-      res.status(200).send({ rows, count });
+      res.status(200).send({ rows, maxPage: Math.ceil(count / limit) || 1, count });
     } catch (err) {
       res.status(500).send(err);
     }
   },
   edit: async (req, res) => {
     try {
-      const { limit, currentPage, values } = req.body;
-
-      if (values.is_default) {
-        await Address.update({ is_default: false }, { where: { userId: req.user.id } });
-      }
+      const { values } = req.body;
 
       await Address.update(values, { where: { id: req.params.id } });
 
-      const { rows, count } = await Address.findAndCountAll({
-        where: { userId: req.user.id },
-        limit,
-        offset: limit * currentPage - limit,
-        order: [['is_default', 'desc']],
-      });
-
-      res.status(200).send({ message: 'Address updated successfully!', rows, count });
+      res.status(200).send({ message: 'Address updated successfully!' });
     } catch (err) {
       res.status(500).send(err);
     }

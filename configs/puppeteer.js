@@ -24,7 +24,7 @@ module.exports = {
         }
       };
 
-      const pdfPath = path.join(filepath(), `${data.user.name}_invoice_${data.id}.pdf`);
+      const pdfPath = path.join(filepath(), `${data.user.name.replace(' ', '')}_invoice_${data.id}.pdf`);
 
       const browser = await puppeteer.launch();
 
