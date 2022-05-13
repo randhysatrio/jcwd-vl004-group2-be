@@ -97,21 +97,25 @@ module.exports = {
         if (userCart.quantity + quantity > userCart.product.stock_in_unit) {
           return res.send({
             conflict: true,
-            message: `Cannot update this cart item quantity as you already had ${userCart.quantity.toLocaleString(
-              'id'
-            )} ${userCart.product.unit} in your cart`,
+            message: `Cannot update this cart item quantity as you already had ${userCart.quantity.toLocaleString('id')} ${
+              userCart.product.unit
+            } in your cart`,
           });
         } else {
           userCart.quantity = userCart.quantity + quantity;
 
           await userCart.save();
 
-          res.status(200).send('Updated cart item quantity!');
+          const cartTotal = await Cart.count({ where: { userId } });
+
+          res.status(200).send({ message: 'Updated cart item quantity!', cartTotal });
         }
       } else {
         await Cart.create({ userId, productId, quantity });
 
-        res.status(201).send('Added this item to your cart!');
+        const cartTotal = await Cart.count({ where: { userId } });
+
+        res.status(200).send({ message: 'Added this item to your cart!', cartTotal });
       }
     } catch (err) {
       res.status(500).send(err);

@@ -7,6 +7,7 @@ const Product = require('../models/Product');
 const DeliveryOption = require('../models/DeliveryOption');
 const PaymentProof = require('../models/PaymentProof');
 const Message = require('../models/Message');
+
 const { startOfDay, endOfDay } = require('date-fns');
 const transporter = require('../configs/nodemailer');
 const { generatePdf } = require('../configs/puppeteer');
@@ -99,12 +100,6 @@ module.exports = {
     try {
       const { id } = req.admin;
 
-      let { sort, startDate, endDate } = req.body;
-      let search = req.body.search ? req.body.search : '';
-      let page = req.body.page ? parseInt(req.body.page) : 1;
-      let limit = 5;
-      let offset = (page - 1) * limit;
-
       const transaction = await InvoiceHeader.findByPk(req.params.id, {
         include: [
           {
@@ -133,7 +128,7 @@ module.exports = {
           to: 'user',
           adminId: id,
           header: `Payment Approved for Invoice #${transaction.id}`,
-          content: `Hello, ${transaction.user.name}!|We have approved the payment you've made for Invoice #6|Please wait while we packed your order and shipped it to you immediately!|Thank you for shopping with us and we are looking forward for your next order :)|Regards,`,
+          content: `Hello, ${transaction.user.name}!|We have approved the payment you've made for Invoice #${transaction.id}!|Please wait while we packed your order and shipped it to you immediately!|Thank you for shopping with us and we are looking forward for your next order :)|Regards,`,
         });
 
         const invoicePdfPath = await generatePdf(transaction);
@@ -149,7 +144,7 @@ module.exports = {
           html: `
           <p>Dear, ${transaction.user.name}</p>
           <br/>
-          <p>We are glad to inform you that we have approved the payment you've made for Invoice #${transaction.id}</p>
+          <p>We are glad to inform you that we have approved the payment you've made for Invoice #${transaction.id}!</p>
           <P>Please kindly wait while we get your order ready and shipped it to you immediately!</p>
           <p>Regards, </p>
           <p><b>The Heizen Berg Co. Admin Team</b></p>`,
@@ -162,43 +157,8 @@ module.exports = {
           ],
         });
 
-        const query = {};
-
-        if (sort) {
-          query.order = [sort.split(',')];
-        } else {
-          query.order = [['createdAt', 'DESC']];
-        }
-
-        const { rows, count } = await InvoiceHeader.findAndCountAll({
-          ...query,
-          where: {
-            [Op.or]: {
-              status: { [Op.like]: `%${search}%` },
-              notes: { [Op.like]: `%${search}%` },
-              '$user.name$': { [Op.like]: `%${search}%` },
-              '$address.address$': { [Op.like]: `%${search}%` },
-              '$deliveryoption.name$': { [Op.like]: `%${search}%` },
-            },
-            createdAt: {
-              [Op.between]: [startOfDay(new Date(startDate)), endOfDay(new Date(endDate))],
-            },
-          },
-          include: [
-            { model: User, required: true },
-            { model: Address, required: true },
-            { model: DeliveryOption, required: true },
-            { model: PaymentProof },
-            { model: InvoiceItem, include: [Product] },
-          ],
-          offset,
-          limit,
-        });
-
         res.status(200).send({
-          data: rows,
-          totalPage: Math.ceil(count / limit) || 1,
-          startNumber: offset,
+          message: 'Invoice updated successfully!',
           userId: transaction.userId,
         });
       }
@@ -209,12 +169,6 @@ module.exports = {
   statusRejected: async (req, res) => {
     try {
       const { id } = req.admin;
-
-      let { sort, startDate, endDate } = req.body;
-      let search = req.body.search ? req.body.search : '';
-      let page = req.body.page ? parseInt(req.body.page) : 1;
-      let limit = 5;
-      let offset = (page - 1) * limit;
 
       const transaction = await InvoiceHeader.findByPk(req.params.id, {
         include: [
@@ -244,7 +198,7 @@ module.exports = {
           to: 'user',
           adminId: id,
           header: `Payment Rejected for Invoice #${transaction.id}`,
-          content: `Hello, ${transaction.user.name}!|We're sorry to inform you that we have rejected the payment you've made for Invoice #${transaction.id}|Furthermore, in line with our applied terms and conditions, you will received your money back in 1x24h time. If you have any questions just send us an email at admin@heizenbergco.com|Regards,`,
+          content: `Hello, ${transaction.user.name}!|We're sorry to inform you that we have rejected the payment you've made for Invoice #${transaction.id}.|Furthermore, in line with our applied terms and conditions, you will received your money back in 1x24h time. If you have any questions just send us an email at admin@heizenbergco.com|Regards,`,
         });
 
         const invoicePdfPath = await generatePdf(transaction);
@@ -256,7 +210,7 @@ module.exports = {
           html: `
           <p>Dear, ${transaction.user.name}</p>
           <br/>
-          <p>We're sorry to inform you that we have rejected the payment you've made for Invoice #${transaction.id}</p>
+          <p>We're sorry to inform you that we have rejected the payment you've made for Invoice #${transaction.id}.</p>
           <P>Furthermore, in line with our applied terms and conditions, you will received your money back in 1x24h time.</p>
           <p>If you have any questions just send us an email at admin@heizenbergco.com</p>
           <p>Regards, </p>
@@ -274,43 +228,8 @@ module.exports = {
 
         await transaction.save();
 
-        const query = {};
-
-        if (sort) {
-          query.order = [sort.split(',')];
-        } else {
-          query.order = [['createdAt', 'DESC']];
-        }
-
-        const { rows, count } = await InvoiceHeader.findAndCountAll({
-          ...query,
-          where: {
-            [Op.or]: {
-              status: { [Op.like]: `%${search}%` },
-              notes: { [Op.like]: `%${search}%` },
-              '$user.name$': { [Op.like]: `%${search}%` },
-              '$address.address$': { [Op.like]: `%${search}%` },
-              '$deliveryoption.name$': { [Op.like]: `%${search}%` },
-            },
-            createdAt: {
-              [Op.between]: [startOfDay(new Date(startDate)), endOfDay(new Date(endDate))],
-            },
-          },
-          include: [
-            { model: User, required: true },
-            { model: Address, required: true },
-            { model: DeliveryOption, required: true },
-            { model: PaymentProof },
-            { model: InvoiceItem, include: [Product] },
-          ],
-          offset,
-          limit,
-        });
-
         res.status(200).send({
-          data: rows,
-          totalPage: Math.ceil(count / limit) || 1,
-          startNumber: offset,
+          message: 'Invoice updated successfully!',
           userId: transaction.userId,
         });
       }
