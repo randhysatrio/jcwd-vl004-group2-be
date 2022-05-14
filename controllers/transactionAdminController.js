@@ -40,11 +40,11 @@ module.exports = {
         query.where = {
           ...query.where,
           [Op.or]: {
-            status: { [Op.like]: `%${search}%` },
-            notes: { [Op.like]: `%${search}%` },
-            '$user.name$': { [Op.like]: `%${search}%` },
-            '$address.address$': { [Op.like]: `%${search}%` },
-            '$deliveryoption.name$': { [Op.like]: `%${search}%` },
+            status: { [Op.substring]: search },
+            notes: { [Op.substring]: search },
+            '$user.name$': { [Op.substring]: search },
+            '$address.address$': { [Op.substring]: search },
+            '$deliveryoption.name$': { [Op.substring]: search },
           },
         };
       }
@@ -52,11 +52,15 @@ module.exports = {
       const { rows, count } = await InvoiceHeader.findAndCountAll({
         ...query,
         include: [
-          { model: User },
-          { model: Address, paranoid: false },
-          { model: DeliveryOption, paranoid: false },
+          { model: User, attributes: ['name'], required: true },
+          { model: Address, attributes: ['address', 'city', 'province', 'country', 'postalcode'], required: true, paranoid: false },
+          { model: DeliveryOption, attributes: ['name'], required: true, paranoid: false },
           { model: PaymentProof },
-          { model: InvoiceItem, include: [{ model: Product, paranoid: false }] },
+          {
+            model: InvoiceItem,
+            attributes: ['price', 'quantity'],
+            include: [{ model: Product, attributes: ['name', 'image'], paranoid: false }],
+          },
         ],
       });
 
