@@ -107,7 +107,7 @@ module.exports = {
           [sequelize.literal(`(SELECT COUNT(*) FROM reviews WHERE reviews.productId = product.id)`), 'totalReviews'],
           [sequelize.literal(`(SELECT AVG(reviews.rating) FROM reviews WHERE reviews.productId = product.id)`), 'avgRating'],
         ],
-        include: Category,
+        include: { model: Category, attributes: ['id', 'name'] },
       };
 
       if (fromHome) {
@@ -140,7 +140,7 @@ module.exports = {
         data.include = [{ model: Category, attributes: ['name'] }];
       }
 
-      let { count, rows } = await Product.findAndCountAll(data);
+      const { count, rows } = await Product.findAndCountAll(data);
 
       res.status(200).send({ products: rows, length: count });
     } catch (err) {
@@ -168,6 +168,7 @@ module.exports = {
           'id',
           'name',
           'price_sell',
+          'price_buy',
           'stock',
           'volume',
           'unit',
@@ -179,7 +180,7 @@ module.exports = {
           [sequelize.literal(`(SELECT COUNT(*) FROM reviews WHERE reviews.productId = product.id)`), 'totalReviews'],
           [sequelize.literal(`(SELECT AVG(reviews.rating) FROM reviews WHERE reviews.productId = product.id)`), 'avgRating'],
         ],
-        include: Category,
+        include: { model: Category, attributes: ['id', 'name'] },
       });
 
       const result = {

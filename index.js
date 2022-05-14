@@ -39,9 +39,7 @@ const hbs = expressHandlebars.create({
       }
     },
     date: function (dateString) {
-      const date = new Date(dateString);
-
-      return format(date, 'PPP');
+      return format(new Date(dateString), 'do MMM yyyy');
     },
     approved: function (val) {
       return val === 'approved';

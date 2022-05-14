@@ -22,7 +22,7 @@ module.exports = {
     return multer({
       storage: storage,
       fileFilter: (req, file, cb) => {
-        const fileTypes = /jpeg|jpg|png|gif/;
+        const fileTypes = /jpeg|jpg|png|gif|webp/;
         const mimeType = fileTypes.test(file.mimetype);
         const extname = fileTypes.test(path.extname(file.originalname));
 

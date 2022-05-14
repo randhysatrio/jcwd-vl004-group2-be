@@ -16,7 +16,7 @@ module.exports = {
   },
   get: async (req, res) => {
     try {
-      const categories = await Category.findAll({});
+      const categories = await Category.findAll({ attributes: ['id', 'name'] });
 
       res.status(200).send(categories);
     } catch (err) {

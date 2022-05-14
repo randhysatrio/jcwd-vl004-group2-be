@@ -14,14 +14,14 @@ const Message = require('../models/Message');
 module.exports = {
   get: async (req, res) => {
     try {
-      const { limit, page, status, dates } = req.body;
+      const { limit, currentPage, status, dates } = req.body;
 
       const query = {
         where: {
           userId: req.user.id,
         },
         limit,
-        offset: page * limit - limit,
+        offset: currentPage * limit - limit,
       };
 
       if (status) {
@@ -70,9 +70,10 @@ module.exports = {
           { model: DeliveryOption, attributes: ['name', 'cost'], paranoid: false },
         ],
         order: [['createdAt', 'desc']],
+        distinct: true,
       });
 
-      res.status(200).send({ invoices: rows, count });
+      res.status(200).send({ invoices: rows, maxPage: Math.ceil(count / limit) || 1, count });
     } catch (err) {
       res.status(500).send(err);
     }

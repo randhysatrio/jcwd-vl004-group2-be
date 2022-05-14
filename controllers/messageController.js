@@ -98,7 +98,7 @@ module.exports = {
       await Message.destroy({ where: { id: req.params.id } });
 
       const { count, rows } = await Message.findAndCountAll({
-        where: { userId },
+        where: { userId, to: 'user' },
         limit,
         offset: currentPage * limit - limit,
         order: [['createdAt', 'desc']],

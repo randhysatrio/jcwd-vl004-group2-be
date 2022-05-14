@@ -17,74 +17,51 @@ module.exports = {
   getTransaction: async (req, res) => {
     try {
       // sort and { sort } is different
-      let { sort, startDate, endDate } = req.body;
-      let search = req.body.search ? req.body.search : '';
-      let page = req.body.page ? parseInt(req.body.page) : 1;
-      let limit = 5;
-      let offset = (page - 1) * limit;
-      // let startNumber = render * page - render;
+      const { sort, startDate, endDate, search, page } = req.body;
+      const limit = 5;
+      const offset = (page - 1) * limit;
 
-      const query = {};
+      const query = { order: [['createdAt', 'DESC']], limit, offset };
 
       if (sort) {
         query.order = [sort.split(',')];
-      } else {
-        query.order = [['createdAt', 'DESC']];
       }
 
-      // date settings
-      // let fullDate = new Date();
-      // let date = `0${fullDate.getDate()}`;
-      // let month = `0${fullDate.getMonth() + 1}`;
-      // let year = fullDate.getFullYear();
-
-      // // date;
-      // startDate = startDate ? new Date(startDate) : new Date(`${year}-${month}-01`);
-      // startDate.setUTCHours(0, 0, 0, 0);
-
-      // endDate = endDate ? new Date(endDate) : new Date(`${year}-${month}-${date}`);
-      // endDate.setUTCHours(23, 59, 59, 999);
-
-      // const count = await InvoiceHeader.count({
-      //   where: {
-      //     [Op.or]: {
-      //       status: { [Op.like]: `%${search}%` },
-      //       notes: { [Op.like]: `%${search}%` },
-      //       '$user.name$': { [Op.like]: `%${search}%` },
-      //       '$address.address$': { [Op.like]: `%${search}%` },
-      //       '$deliveryoption.name$': { [Op.like]: `%${search}%` },
-      //     },
-      //   },
-      //   include: [
-      //     { model: User, required: true },
-      //     { model: Address, required: true },
-      //     { model: DeliveryOption, required: true },
-      //   ],
-      // });
-
-      const { rows, count } = await InvoiceHeader.findAndCountAll({
-        ...query,
-        where: {
-          [Op.or]: {
-            status: { [Op.like]: `%${search}%` },
-            notes: { [Op.like]: `%${search}%` },
-            '$user.name$': { [Op.like]: `%${search}%` },
-            '$address.address$': { [Op.like]: `%${search}%` },
-            '$deliveryoption.name$': { [Op.like]: `%${search}%` },
-          },
+      if (startDate || endDate) {
+        query.where = {
+          ...query.where,
           createdAt: {
             [Op.between]: [startOfDay(new Date(startDate)), endOfDay(new Date(endDate))],
           },
-        },
+        };
+      }
+
+      if (search) {
+        query.where = {
+          ...query.where,
+          [Op.or]: {
+            status: { [Op.substring]: search },
+            notes: { [Op.substring]: search },
+            '$user.name$': { [Op.substring]: search },
+            '$address.address$': { [Op.substring]: search },
+            '$deliveryoption.name$': { [Op.substring]: search },
+          },
+        };
+      }
+
+      const { rows, count } = await InvoiceHeader.findAndCountAll({
+        ...query,
         include: [
-          { model: User, required: true },
-          { model: Address, required: true },
-          { model: DeliveryOption, required: true },
+          { model: User, attributes: ['name'], required: true },
+          { model: Address, attributes: ['address', 'city', 'province', 'country', 'postalcode'], required: true, paranoid: false },
+          { model: DeliveryOption, attributes: ['name'], required: true, paranoid: false },
           { model: PaymentProof },
-          { model: InvoiceItem, include: [Product] },
+          {
+            model: InvoiceItem,
+            attributes: ['price', 'quantity'],
+            include: [{ model: Product, attributes: ['name', 'image'], paranoid: false }],
+          },
         ],
-        offset,
-        limit,
       });
 
       res.status(200).send({
@@ -150,7 +127,7 @@ module.exports = {
           <p><b>The Heizen Berg Co. Admin Team</b></p>`,
           attachments: [
             {
-              filename: `${transaction.user.name}_invoice_${transaction.id}.pdf`,
+              filename: `${transaction.user.name.replace(' ', '')}_invoice_${transaction.id}.pdf`,
               path: path.resolve(invoicePdfPath),
               contentType: 'application/pdf',
             },
@@ -217,7 +194,7 @@ module.exports = {
           <p><b>The Heizen Berg Co. Admin Team</b></p>`,
           attachments: [
             {
-              filename: `${transaction.user.name}_invoice_${transaction.id}.pdf`,
+              filename: `${transaction.user.name.replace(' ', '')}_invoice_${transaction.id}.pdf`,
               path: path.resolve(invoicePdfPath),
               contentType: 'application/pdf',
             },
