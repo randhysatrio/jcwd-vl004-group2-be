@@ -60,7 +60,7 @@ module.exports = {
               {
                 model: Product,
                 include: [{ model: Category, attributes: ['name'] }],
-                attributes: ['name', 'image', 'unit'],
+                attributes: ['name', 'image', 'unit', 'id'],
                 paranoid: false,
               },
             ],

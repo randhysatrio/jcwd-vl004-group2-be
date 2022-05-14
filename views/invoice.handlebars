@@ -35,14 +35,14 @@
   center; align-items: center; } .invoice__footer { width: 100%; height: max-content; padding: 15px 10px; } .invoice__footer_wrapper {
   width: 100%; height: max-content; display: flex; justify-content: end; } .invoice__footer_notes { width: 50%; min-height: 100px;
   border-radius: 10px; padding: 5px 10px; display: flex; flex-direction: column; border: 1px dashed gray; margin-right: 10px; }
-  .invoice__footer_notes-header { font-size: 15px; font-weight: bold; } .invoice__footer_summary { width: 35%; padding: 0 10px; display:
-  flex; flex-direction: column; align-items: end; } .invoice__footer_summary-header { width: 100%; font-size: 15px; font-weight: bold;
-  border-bottom: 1px solid black; text-align: end; margin-bottom: 5px; } .invoice__footer_summary_field_wrapper { width: 100%; display:
-  flex; justify-content: space-between; align-items: center; margin-bottom: 5px; } .invoice__footer_summary_field-prop { font-weight: bold;
-  } .invoice__footer_summary_field-value { font-weight: 600; } .invoice__footer_summary_field_wrapper_total { width: 100%; display: flex;
-  justify-content: space-between; align-items: center; font-size: 20px; border: 1px solid black; border-radius: 5px; padding: 5px; }
-  .invoice__footer_bottom { width: 100%; display: flex; justify-content: center; font-weight: 500; padding: 2px 0; border-top: 1px solid
-  gainsboro; }
+  .invoice__footer_notes-header { font-size: 15px; font-weight: bold; } .invoice__footer_notes-content { font-size: 15px;}
+  .invoice__footer_summary { width: 35%; padding: 0 10px; display: flex; flex-direction: column; align-items: end; }
+  .invoice__footer_summary-header { width: 100%; font-size: 15px; font-weight: bold; border-bottom: 1px solid black; text-align: end;
+  margin-bottom: 5px; } .invoice__footer_summary_field_wrapper { width: 100%; display: flex; justify-content: space-between; align-items:
+  center; margin-bottom: 5px; } .invoice__footer_summary_field-prop { font-weight: bold; } .invoice__footer_summary_field-value {
+  font-weight: 600; } .invoice__footer_summary_field_wrapper_total { width: 100%; display: flex; justify-content: space-between;
+  align-items: center; font-size: 20px; border: 1px solid black; border-radius: 5px; padding: 5px; } .invoice__footer_bottom { width: 100%;
+  display: flex; justify-content: center; font-weight: 500; padding: 2px 0; border-top: 1px solid gainsboro; }
 </style>
 
 <div class='invoice__main'>
@@ -110,7 +110,7 @@
           <div class='invoice__item'>
             <div class='invoice__item_image'>
               <div class='invoice__item_img'>
-                <img src={{{product.image}}} />
+                <img src={{imageLink product.image}} />
               </div>
             </div>
             <div class='invoice__item_name'>
@@ -134,6 +134,7 @@
     <div class='invoice__footer_wrapper'>
       <div class='invoice__footer_notes'>
         <span class='invoice__footer_notes-header'>Notes:</span>
+        <span class='invoice__footer_notes-content'>{{data.notes}}</span>
       </div>
       <div class='invoice__footer_summary'>
         <span class='invoice__footer_summary-header'>Order Summary</span>

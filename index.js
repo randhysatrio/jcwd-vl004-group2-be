@@ -41,6 +41,9 @@ const hbs = expressHandlebars.create({
     date: function (dateString) {
       return format(new Date(dateString), 'do MMM yyyy');
     },
+    imageLink: function (path) {
+      return `${process.env.API_URL}/${path}`;
+    },
     approved: function (val) {
       return val === 'approved';
     },

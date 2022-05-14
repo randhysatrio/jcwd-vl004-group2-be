@@ -7,7 +7,15 @@ module.exports = {
     try {
       const items = await InvoiceItem.findAll({
         where: { invoiceheaderId: req.params.id },
-        include: [{ model: Product, include: [{ model: Category, paranoid: false }], paranoid: false }],
+        attributes: ['id', 'quantity', 'productId'],
+        include: [
+          {
+            model: Product,
+            attributes: ['name', 'image', 'unit', 'stock_in_unit', 'deletedAt'],
+            include: [{ model: Category, attributes: ['name'], paranoid: false }],
+            paranoid: false,
+          },
+        ],
       });
 
       res.status(200).send(items);
