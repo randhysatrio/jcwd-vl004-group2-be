@@ -62,6 +62,7 @@ module.exports = {
             include: [{ model: Product, attributes: ['name', 'image'], paranoid: false }],
           },
         ],
+        distinct: true,
       });
 
       res.status(200).send({

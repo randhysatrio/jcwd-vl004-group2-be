@@ -72,19 +72,19 @@ module.exports = {
 
       const userData = await User.findOne({ where: { email, password } });
 
-      const cartTotal = await Cart.count({ where: { userId: userData.id } });
-
       if (!userData) {
         return res.send({ invalid: true });
+      } else {
+        const cartTotal = await Cart.count({ where: { userId: userData.id } });
+
+        const token = createToken({
+          id: userData.id,
+          name: userData.name,
+          email: userData.email,
+        });
+
+        res.status(200).send({ user: userData, token, cartTotal });
       }
-
-      const token = createToken({
-        id: userData.id,
-        name: userData.name,
-        email: userData.email,
-      });
-
-      res.status(200).send({ user: userData, token, cartTotal });
     } catch (err) {
       res.status(500).send(err);
     }

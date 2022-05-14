@@ -88,6 +88,13 @@ module.exports = {
         });
       }
 
+      if (productData.stock_in_unit < quantity) {
+        return res.send({
+          conflict: true,
+          message: `Current stock insufficient!`,
+        });
+      }
+
       const userCart = await Cart.findOne({
         where: { userId, productId },
         include: Product,
