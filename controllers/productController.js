@@ -42,7 +42,7 @@ module.exports = {
   query: async (req, res) => {
     try {
       const {
-        keyword,
+        // keyword,
         category,
         limit,
         offset,
@@ -58,6 +58,9 @@ module.exports = {
       const query = {
         limit,
       };
+
+      const { keyword } = req.query;
+      console.log(keyword);
 
       if (category !== "all") {
         if (category) {
