@@ -29,7 +29,7 @@ module.exports = {
         include: Admin,
       });
 
-      res.status(200).send({ count, rows });
+      res.status(200).send({ count, maxPage: Math.ceil(count / limit) || 1, rows });
     } catch (err) {
       res.status(500).send(err);
     }
@@ -59,7 +59,7 @@ module.exports = {
         include: User,
       });
 
-      res.status(200).send({ count, rows });
+      res.status(200).send({ count, maxPage: Math.ceil(count / limit) || 1, rows });
     } catch (err) {
       res.status(500).send(err);
     }
@@ -105,7 +105,7 @@ module.exports = {
         include: Admin,
       });
 
-      res.status(200).send({ message: 'Message deleted successfully!', rows, count });
+      res.status(200).send({ message: 'Message deleted successfully!', maxPage: Math.ceil(count / limit) || 1, rows, count });
     } catch (err) {
       res.status(500).send(err);
     }
@@ -124,7 +124,7 @@ module.exports = {
         include: User,
       });
 
-      res.status(200).send({ message: 'Message deleted successfully!', rows, count });
+      res.status(200).send({ message: 'Message deleted successfully!', maxPage: Math.ceil(count / limit) || 1, rows, count });
     } catch (err) {
       res.status(500).send(err);
     }
