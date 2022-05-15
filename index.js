@@ -177,6 +177,16 @@ io.on('connection', (socket) => {
     }
   });
 
+  socket.on('newTransaction', async () => {
+    if (admins.length) {
+      const totalNotif = await Message.count({
+        where: { to: 'admin', is_new: true },
+      });
+
+      admins.forEach((admin) => io.to(admin.socketId).emit('newAdminTransaction', totalNotif));
+    }
+  });
+
   socket.on('userNotif', async (userId) => {
     const userData = users.find((user) => user.id === userId);
 

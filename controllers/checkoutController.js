@@ -178,7 +178,6 @@ module.exports = {
             res.status(200).send({ message: 'file uploaded' });
           }
         } catch (error) {
-          console.log(error);
           fs.unlinkSync(req.files.file[0].path);
 
           res.status(500).send({ message: error.message });
@@ -186,6 +185,39 @@ module.exports = {
       });
     } catch (error) {
       res.status(500).send({ message: error.message });
+    }
+  },
+  cancelCheckout: async (req, res) => {
+    try {
+      const { limit, currentPage } = req.body;
+
+      await InvoiceHeader.destroy({ where: { id: req.params.id } });
+
+      const { rows, count } = await InvoiceHeader.findAndCountAll({
+        where: { userId: req.user.id, status: 'awaiting' },
+        attributes: [
+          'id',
+          'createdAt',
+          [
+            sequelize.literal(`(SELECT SUM(price * quantity) FROM invoiceitems WHERE invoiceitems.invoiceheaderId = invoiceheader.id)`),
+            'total',
+          ],
+        ],
+        include: [
+          {
+            model: InvoiceItem,
+            attributes: ['id', 'price', 'quantity', 'subtotal'],
+            include: [{ model: Product, attributes: ['name', 'image', 'unit'], paranoid: false }],
+          },
+          { model: DeliveryOption, attributes: ['name', 'cost'], paranoid: false },
+        ],
+        limit,
+        offset: limit * currentPage - limit,
+      });
+
+      res.status(200).send({ message: 'You have canceled this transaction', rows, count, maxPage: Math.ceil(count / limit) || 1 });
+    } catch (err) {
+      res.status(500).send(err);
     }
   },
 };
