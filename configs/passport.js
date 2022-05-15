@@ -22,7 +22,6 @@ passport.use(
         defaults: {
           name: profile.displayName,
           email: profile.emails[0].value,
-          profile_picture: profile.photos[0].value,
           googleId: profile.id,
         },
       });
