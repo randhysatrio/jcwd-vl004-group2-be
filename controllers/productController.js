@@ -60,7 +60,6 @@ module.exports = {
       };
 
       const { keyword } = req.query;
-      console.log(keyword);
 
       if (category !== "all") {
         if (category) {

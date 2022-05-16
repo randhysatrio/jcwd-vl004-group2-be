@@ -1,9 +1,9 @@
-require('dotenv').config();
-const User = require('../models/User');
-const Product = require('../models/Product');
-const { Op } = require('sequelize');
-const fs = require('fs');
-const Crypto = require('crypto');
+require("dotenv").config();
+const User = require("../models/User");
+const Product = require("../models/Product");
+const { Op } = require("sequelize");
+const fs = require("fs");
+const Crypto = require("crypto");
 
 module.exports = {
   get: async (req, res) => {
@@ -46,24 +46,27 @@ module.exports = {
     try {
       await Address.destroy({ where: { id: req.params.id } });
 
-      res.status(200).send('Address deleted successfully!');
+      res.status(200).send("Address deleted successfully!");
     } catch (err) {
       res.status(200).send(err);
     }
   },
   query: async (req, res) => {
     try {
-      const { name, active, limit, keyword } = req.body;
+      const { name, active, limit } = req.body;
 
       const query = {
         limit,
       };
+
+      const { keyword } = req.query;
 
       if (keyword) {
         query.where = {
           ...query.where,
           [Op.or]: {
             name: { [Op.substring]: keyword },
+            email: { [Op.substring]: keyword },
           },
         };
       }
@@ -124,7 +127,7 @@ module.exports = {
         if (usernamecheck) {
           return res.send({
             conflict: true,
-            message: 'This username has already been taken',
+            message: "This username has already been taken",
           });
         }
       }
@@ -136,14 +139,18 @@ module.exports = {
       await User.update(dataToUpdate, { where: { id } });
 
       if (req.file) {
-        if (currentData.profile_picture !== 'public/images/profile/default.png') {
+        if (
+          currentData.profile_picture !== "public/images/profile/default.png"
+        ) {
           fs.unlinkSync(currentData.profile_picture);
         }
       }
 
       const updatedData = await User.findByPk(id);
 
-      res.status(200).send({ message: 'Profile updated successfully', user: updatedData });
+      res
+        .status(200)
+        .send({ message: "Profile updated successfully", user: updatedData });
     } catch (err) {
       if (req.file) {
         fs.unlinkSync(req.file.path);
@@ -154,8 +161,12 @@ module.exports = {
   },
   updatePassword: async (req, res) => {
     try {
-      req.body.password = Crypto.createHmac('SHA256', process.env.CRYPTO_KEY).update(req.body.password).digest('hex');
-      req.body.newPass = Crypto.createHmac('SHA256', process.env.CRYPTO_KEY).update(req.body.newPass).digest('hex');
+      req.body.password = Crypto.createHmac("SHA256", process.env.CRYPTO_KEY)
+        .update(req.body.password)
+        .digest("hex");
+      req.body.newPass = Crypto.createHmac("SHA256", process.env.CRYPTO_KEY)
+        .update(req.body.newPass)
+        .digest("hex");
 
       const { id } = req.user;
 
@@ -166,7 +177,7 @@ module.exports = {
       if (currentData.password !== password) {
         return res.send({
           conflict: true,
-          message: 'Please check your current password!',
+          message: "Please check your current password!",
         });
       }
 
@@ -174,7 +185,7 @@ module.exports = {
 
       await currentData.save();
 
-      res.status(200).send('Password changed successfully!');
+      res.status(200).send("Password changed successfully!");
     } catch (err) {
       res.status(500).send(err);
     }
