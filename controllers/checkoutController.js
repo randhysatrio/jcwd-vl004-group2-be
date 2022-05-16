@@ -66,6 +66,7 @@ module.exports = {
       res.status(201).send({
         message: 'Checkout added',
         invoice: newInvoiceHeader.id,
+        createdAt: newInvoiceHeader.createdAt,
         cartTotal: count,
       });
     } catch (error) {
@@ -191,6 +192,27 @@ module.exports = {
     try {
       const { limit, currentPage } = req.body;
 
+      const invoiceData = await InvoiceHeader.findByPk(req.params.id, {
+        attributes: [],
+        include: [
+          {
+            model: InvoiceItem,
+            attributes: ['quantity', 'productId'],
+            include: [{ model: Product, attributes: ['stock_in_unit', 'volume'] }],
+          },
+        ],
+      });
+
+      await invoiceData.invoiceitems.forEach((item) => {
+        Product.update(
+          {
+            stock_in_unit: item.product.stock_in_unit + item.quantity,
+            stock: Math.floor((item.product.stock_in_unit + item.quantity) / item.product.volume),
+          },
+          { where: { id: item.productId } }
+        );
+      });
+
       await InvoiceHeader.destroy({ where: { id: req.params.id } });
 
       const { rows, count } = await InvoiceHeader.findAndCountAll({
@@ -215,7 +237,7 @@ module.exports = {
         offset: limit * currentPage - limit,
       });
 
-      res.status(200).send({ message: 'You have canceled this transaction', rows, count, maxPage: Math.ceil(count / limit) || 1 });
+      res.status(200).send({ message: 'Transaction cancelled', rows, count, maxPage: Math.ceil(count / limit) || 1 });
     } catch (err) {
       res.status(500).send(err);
     }

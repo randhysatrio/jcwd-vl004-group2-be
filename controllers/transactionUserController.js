@@ -169,6 +169,7 @@ module.exports = {
         ],
         limit,
         offset: limit * currentPage - limit,
+        distinct: true,
       });
 
       res.status(200).send({ rows, count, maxPage: Math.ceil(count / limit) || 1 });

@@ -28,7 +28,7 @@ const InvoiceHeader = sequelize.define('invoiceheader', {
   },
 });
 
-InvoiceHeader.hasMany(InvoiceItem);
+InvoiceHeader.hasMany(InvoiceItem, { onDelete: 'CASCADE' });
 InvoiceItem.belongsTo(InvoiceHeader);
 
 InvoiceHeader.hasOne(PaymentProof);
