@@ -63,4 +63,35 @@ module.exports = {
 
     return multer({ storage, fileFilter });
   },
+  paymentUploader: () => {
+    let path = './public/images/payment';
+
+    const storage = multer.diskStorage({
+      destination: (req, file, cb) => {
+        if (fs.existsSync(path)) {
+          cb(null, path);
+        } else {
+          fs.mkdir(path, { recursive: true }, (err) => cb(err, path));
+        }
+      },
+      filename: (req, file, cb) => {
+        let ext = file.originalname.split('.');
+        let filename = `IMG${Date.now()}.${ext[ext.length - 1]}`;
+        cb(null, filename);
+      },
+    });
+
+    const fileFilter = (req, file, cb) => {
+      const ext = /\.(jpg|jpeg|png|pdf)/;
+      if (!file.originalname.match(ext)) {
+        return cb(new Error('Type file not accepted'), false);
+      }
+      cb(null, true);
+    };
+
+    return multer({
+      storage,
+      fileFilter,
+    });
+  },
 };

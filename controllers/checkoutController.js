@@ -7,7 +7,7 @@ const Address = require('../models/Address');
 const DeliveryOption = require('../models/DeliveryOption');
 const Cart = require('../models/Cart');
 const Product = require('../models/Product');
-const { uploader } = require('../configs/uploaderPayment');
+const { paymentUploader } = require('../configs/uploader');
 const fs = require('fs');
 const Message = require('../models/Message');
 
@@ -113,8 +113,7 @@ module.exports = {
   },
   addProof: async (req, res) => {
     try {
-      let path = '/images/payment';
-      const upload = uploader(path, 'IMG').fields([{ name: 'file' }]);
+      const upload = paymentUploader().fields([{ name: 'file' }]);
 
       // multer
       upload(req, res, async (error) => {
@@ -133,7 +132,7 @@ module.exports = {
 
           const { file } = req.files;
 
-          const filepath = file ? path + '/' + file[0].filename : null;
+          const filepath = file ? `images/payment/${file[0].filename}` : null;
 
           await PaymentProof.create({
             path: filepath,
