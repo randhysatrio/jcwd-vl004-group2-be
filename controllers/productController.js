@@ -187,10 +187,8 @@ module.exports = {
         product,
       };
 
-      let relatedProducts;
-
       if (withRelated) {
-        relatedProducts = await Product.findAll({
+        const relatedProducts = await Product.findAll({
           where: { categoryId: product.categoryId },
           attributes: [
             'id',
@@ -206,7 +204,7 @@ module.exports = {
           limit,
         });
 
-        result.relatedProducts = relatedProducts.filter((product) => product.id !== req.params.id);
+        result.relatedProducts = relatedProducts.filter((related) => related.id !== product.id);
       }
 
       res.status(200).send(result);

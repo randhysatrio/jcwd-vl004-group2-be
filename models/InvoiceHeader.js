@@ -7,11 +7,11 @@ const PaymentProof = require('./PaymentProof');
 const InvoiceHeader = sequelize.define('invoiceheader', {
   status: {
     type: DataTypes.STRING,
-    defaultValue: 'pending',
+    defaultValue: 'awaiting',
     allowNull: false,
     validate: {
       isIn: {
-        args: [['pending', 'approved', 'rejected']],
+        args: [['awaiting', 'pending', 'approved', 'rejected']],
         msg: 'Value is not supported',
       },
     },
@@ -28,7 +28,7 @@ const InvoiceHeader = sequelize.define('invoiceheader', {
   },
 });
 
-InvoiceHeader.hasMany(InvoiceItem);
+InvoiceHeader.hasMany(InvoiceItem, { onDelete: 'CASCADE' });
 InvoiceItem.belongsTo(InvoiceHeader);
 
 InvoiceHeader.hasOne(PaymentProof);

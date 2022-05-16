@@ -55,7 +55,7 @@ module.exports = {
           { model: User, attributes: ['name'], required: true },
           { model: Address, attributes: ['address', 'city', 'province', 'country', 'postalcode'], required: true, paranoid: false },
           { model: DeliveryOption, attributes: ['name'], required: true, paranoid: false },
-          { model: PaymentProof },
+          { model: PaymentProof, required: true },
           {
             model: InvoiceItem,
             attributes: ['price', 'quantity'],

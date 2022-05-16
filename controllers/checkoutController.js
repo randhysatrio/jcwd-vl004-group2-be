@@ -1,3 +1,4 @@
+const sequelize = require('../configs/sequelize');
 const InvoiceHeader = require('../models/InvoiceHeader');
 const InvoiceItem = require('../models/InvoiceItem');
 const PaymentProof = require('../models/PaymentProof');
@@ -13,8 +14,7 @@ const Message = require('../models/Message');
 module.exports = {
   addCheckout: async (req, res) => {
     try {
-      let { notes, addressId, userId, deliveryoptionId, orderItems } =
-        req.body.dataCheckout;
+      let { notes, addressId, userId, deliveryoptionId, orderItems } = req.body.dataCheckout;
 
       // create invoice header
       const newInvoiceHeader = await InvoiceHeader.create(
@@ -57,9 +57,7 @@ module.exports = {
         Product.update(
           {
             stock_in_unit: item.product.stock_in_unit - item.quantity,
-            stock: Math.floor(
-              (item.product.stock_in_unit - item.quantity) / item.product.volume
-            ),
+            stock: Math.floor((item.product.stock_in_unit - item.quantity) / item.product.volume),
           },
           { where: { id: item.product.id } }
         );
@@ -68,6 +66,7 @@ module.exports = {
       res.status(201).send({
         message: 'Checkout added',
         invoice: newInvoiceHeader.id,
+        createdAt: newInvoiceHeader.createdAt,
         cartTotal: count,
       });
     } catch (error) {
@@ -120,7 +119,7 @@ module.exports = {
       // multer
       upload(req, res, async (error) => {
         try {
-          let { invoiceheaderId } = JSON.parse(req.body.data);
+          let { invoiceheaderId, currentPage, limit } = JSON.parse(req.body.data);
 
           const checkIsUploaded = await PaymentProof.findOne({
             where: {
@@ -136,29 +135,111 @@ module.exports = {
 
           const filepath = file ? path + '/' + file[0].filename : null;
 
-          const response = await PaymentProof.create({
+          await PaymentProof.create({
             path: filepath,
             invoiceheaderId,
           });
 
-          if (response) {
-            await Message.create({
-              userId: req.user.id,
-              to: 'admin',
-              header: `Awaiting Approval for Invoice #${invoiceheaderId}`,
-              content: `User ID#${req.user.id} (${req.user.name}) has made the payment for Invoice #${invoiceheaderId}.|Please continue with the appropriate approval process for this invoice.|Thank you and have a nice day :)|**This is an automated message**`,
+          await InvoiceHeader.update({ status: 'pending' }, { where: { id: invoiceheaderId } });
+
+          await Message.create({
+            userId: req.user.id,
+            to: 'admin',
+            header: `Awaiting Approval for Invoice #${invoiceheaderId}`,
+            content: `User ID#${req.user.id} (${req.user.name}) has made the payment for Invoice #${invoiceheaderId}.|Please continue with the appropriate approval process for this invoice.|Thank you and have a nice day :)|**This is an automated message**`,
+          });
+
+          if (currentPage || limit) {
+            const { rows, count } = await InvoiceHeader.findAndCountAll({
+              where: { userId: req.user.id, status: 'awaiting' },
+              attributes: [
+                'id',
+                'createdAt',
+                [
+                  sequelize.literal(
+                    `(SELECT SUM(price * quantity) FROM invoiceitems WHERE invoiceitems.invoiceheaderId = invoiceheader.id)`
+                  ),
+                  'total',
+                ],
+              ],
+              include: [
+                {
+                  model: InvoiceItem,
+                  attributes: ['id', 'price', 'quantity', 'subtotal'],
+                  include: [{ model: Product, attributes: ['name', 'image', 'unit'], paranoid: false }],
+                },
+                { model: DeliveryOption, attributes: ['name', 'cost'], paranoid: false },
+              ],
+              limit,
+              offset: limit * currentPage - limit,
             });
 
-            res.status(200).send({ message: 'file uploaded' });
+            res.status(200).send({ message: 'file uploaded', rows, count, maxPage: Math.ceil(count / limit) || 1 });
           } else {
-            fs.unlinkSync('./public' + filepath);
+            res.status(200).send({ message: 'file uploaded' });
           }
         } catch (error) {
+          fs.unlinkSync(req.files.file[0].path);
+
           res.status(500).send({ message: error.message });
         }
       });
     } catch (error) {
       res.status(500).send({ message: error.message });
+    }
+  },
+  cancelCheckout: async (req, res) => {
+    try {
+      const { limit, currentPage } = req.body;
+
+      const invoiceData = await InvoiceHeader.findByPk(req.params.id, {
+        attributes: [],
+        include: [
+          {
+            model: InvoiceItem,
+            attributes: ['quantity', 'productId'],
+            include: [{ model: Product, attributes: ['stock_in_unit', 'volume'] }],
+          },
+        ],
+      });
+
+      await invoiceData.invoiceitems.forEach((item) => {
+        Product.update(
+          {
+            stock_in_unit: item.product.stock_in_unit + item.quantity,
+            stock: Math.floor((item.product.stock_in_unit + item.quantity) / item.product.volume),
+          },
+          { where: { id: item.productId } }
+        );
+      });
+
+      await InvoiceHeader.destroy({ where: { id: req.params.id } });
+
+      const { rows, count } = await InvoiceHeader.findAndCountAll({
+        where: { userId: req.user.id, status: 'awaiting' },
+        attributes: [
+          'id',
+          'createdAt',
+          [
+            sequelize.literal(`(SELECT SUM(price * quantity) FROM invoiceitems WHERE invoiceitems.invoiceheaderId = invoiceheader.id)`),
+            'total',
+          ],
+        ],
+        include: [
+          {
+            model: InvoiceItem,
+            attributes: ['id', 'price', 'quantity', 'subtotal'],
+            include: [{ model: Product, attributes: ['name', 'image', 'unit'], paranoid: false }],
+          },
+          { model: DeliveryOption, attributes: ['name', 'cost'], paranoid: false },
+        ],
+        limit,
+        offset: limit * currentPage - limit,
+      });
+
+      res.status(200).send({ message: 'Transaction cancelled', rows, count, maxPage: Math.ceil(count / limit) || 1 });
+    } catch (err) {
+      res.status(500).send(err);
     }
   },
 };

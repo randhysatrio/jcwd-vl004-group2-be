@@ -19,6 +19,7 @@ module.exports = {
       const query = {
         where: {
           userId: req.user.id,
+          status: ['pending', 'approved', 'rejected'],
         },
         limit,
         offset: currentPage * limit - limit,
@@ -93,7 +94,7 @@ module.exports = {
           userId: req.user.id,
           to: 'admin',
           header: `Invoice #${req.params.id} has reached their destination`,
-          content: `User ID#${req.user.id} (${req.user.name}) has informed us that Invoice ID#${req.params.id} has been successfully received by this user.|Thank you and have a nice day :)|**This is an automated message**`,
+          content: `User ID #${req.user.id} (${req.user.name}) has informed us that Invoice ID#${req.params.id} has been successfully received by this user.|Thank you and have a nice day :)|**This is an automated message**`,
         });
 
         res.status(200).send({ message: 'Thank you for letting us know you have received your order!', received: true });
@@ -121,7 +122,7 @@ module.exports = {
         include: [
           {
             model: InvoiceItem,
-            attributes: ['price', 'quantity', 'subtotal'],
+            attributes: ['id', 'price', 'quantity', 'subtotal'],
             include: [{ model: Product, attributes: ['name', 'image', 'unit'], paranoid: false }],
           },
           { model: User, attributes: ['name', 'phone_number'] },
@@ -140,6 +141,38 @@ module.exports = {
       const { path } = req.query;
 
       res.download(path);
+    } catch (err) {
+      res.status(500).send(err);
+    }
+  },
+  getAwaiting: async (req, res) => {
+    try {
+      const { limit, currentPage } = req.body;
+
+      const { rows, count } = await InvoiceHeader.findAndCountAll({
+        where: { userId: req.user.id, status: 'awaiting' },
+        attributes: [
+          'id',
+          'createdAt',
+          [
+            sequelize.literal(`(SELECT SUM(price * quantity) FROM invoiceitems WHERE invoiceitems.invoiceheaderId = invoiceheader.id)`),
+            'total',
+          ],
+        ],
+        include: [
+          {
+            model: InvoiceItem,
+            attributes: ['id', 'price', 'quantity', 'subtotal'],
+            include: [{ model: Product, attributes: ['name', 'image', 'unit'], paranoid: false }],
+          },
+          { model: DeliveryOption, attributes: ['name', 'cost'], paranoid: false },
+        ],
+        limit,
+        offset: limit * currentPage - limit,
+        distinct: true,
+      });
+
+      res.status(200).send({ rows, count, maxPage: Math.ceil(count / limit) || 1 });
     } catch (err) {
       res.status(500).send(err);
     }
