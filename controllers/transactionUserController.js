@@ -1,6 +1,6 @@
 const { Op } = require('sequelize');
 const sequelize = require('../configs/sequelize');
-const path = require('path');
+const { addDays } = require('date-fns');
 
 const InvoiceHeader = require('../models/InvoiceHeader');
 const InvoiceItem = require('../models/InvoiceItem');
@@ -10,6 +10,7 @@ const Product = require('../models/Product');
 const Category = require('../models/Category');
 const DeliveryOption = require('../models/DeliveryOption');
 const Message = require('../models/Message');
+const PaymentProof = require('../models/PaymentProof');
 
 module.exports = {
   get: async (req, res) => {
@@ -19,7 +20,6 @@ module.exports = {
       const query = {
         where: {
           userId: req.user.id,
-          status: ['pending', 'approved', 'rejected'],
         },
         limit,
         offset: currentPage * limit - limit,
@@ -65,10 +65,12 @@ module.exports = {
                 paranoid: false,
               },
             ],
+            required: true,
           },
-          { model: User, attributes: ['name', 'phone_number'] },
-          { model: Address, attributes: ['address', 'city', 'province', 'country', 'postalcode'], paranoid: false },
-          { model: DeliveryOption, attributes: ['name', 'cost'], paranoid: false },
+          { model: PaymentProof, attributes: [], required: true },
+          { model: User, attributes: ['name', 'phone_number'], required: true },
+          { model: Address, attributes: ['address', 'city', 'province', 'country', 'postalcode'], paranoid: false, required: true },
+          { model: DeliveryOption, attributes: ['name', 'cost'], required: true, paranoid: false },
         ],
         order: [['createdAt', 'desc']],
         distinct: true,
@@ -170,9 +172,24 @@ module.exports = {
         limit,
         offset: limit * currentPage - limit,
         distinct: true,
+        order: [['createdAt', 'DESC']],
       });
 
-      res.status(200).send({ rows, count, maxPage: Math.ceil(count / limit) || 1 });
+      const expiredInvoices = rows.filter((invoice) => Date.now() > addDays(new Date(invoice.createdAt), 1));
+
+      if (expiredInvoices.length) {
+        const expiredInvoiceId = expiredInvoices.map((invoice) => invoice.id);
+
+        await InvoiceHeader.destroy({ where: { id: expiredInvoiceId } });
+
+        const filteredRows = rows.filter((row, index) => row.id !== expiredInvoiceId[index]);
+
+        res
+          .status(200)
+          .send({ rows: filteredRows, count, maxPage: Math.ceil(count / limit) || 1, expiredInvoices: expiredInvoiceId.length });
+      } else {
+        res.status(200).send({ rows, count, maxPage: Math.ceil(count / limit) || 1 });
+      }
     } catch (err) {
       res.status(500).send(err);
     }

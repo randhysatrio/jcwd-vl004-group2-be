@@ -145,7 +145,7 @@ module.exports = {
             userId: req.user.id,
             to: 'admin',
             header: `Awaiting Approval for Invoice #${invoiceheaderId}`,
-            content: `User ID#${req.user.id} (${req.user.name}) has made the payment for Invoice #${invoiceheaderId}.|Please continue with the appropriate approval process for this invoice.|Thank you and have a nice day :)|**This is an automated message**`,
+            content: `User ID #${req.user.id} (${req.user.name}) has made the payment for Invoice #${invoiceheaderId}.|Please continue with the appropriate approval process for this invoice.|Thank you and have a nice day :)|**This is an automated message**`,
           });
 
           if (currentPage || limit) {
