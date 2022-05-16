@@ -186,7 +186,12 @@ module.exports = {
 
         res
           .status(200)
-          .send({ rows: filteredRows, count, maxPage: Math.ceil(count / limit) || 1, expiredInvoices: expiredInvoiceId.length });
+          .send({
+            rows: filteredRows,
+            count: count - expiredInvoiceId.length,
+            maxPage: Math.ceil((count - expiredInvoiceId.length) / limit) || 1,
+            expiredInvoices: expiredInvoiceId.length,
+          });
       } else {
         res.status(200).send({ rows, count, maxPage: Math.ceil(count / limit) || 1 });
       }
