@@ -1,21 +1,22 @@
-const { Op } = require('sequelize');
-const sequelize = require('../configs/sequelize');
-const { addDays } = require('date-fns');
+const { Op } = require("sequelize");
+const sequelize = require("../configs/sequelize");
+const { addDays } = require("date-fns");
 
-const InvoiceHeader = require('../models/InvoiceHeader');
-const InvoiceItem = require('../models/InvoiceItem');
-const User = require('../models/User');
-const Address = require('../models/Address');
-const Product = require('../models/Product');
-const Category = require('../models/Category');
-const DeliveryOption = require('../models/DeliveryOption');
-const Message = require('../models/Message');
-const PaymentProof = require('../models/PaymentProof');
+const InvoiceHeader = require("../models/InvoiceHeader");
+const InvoiceItem = require("../models/InvoiceItem");
+const User = require("../models/User");
+const Address = require("../models/Address");
+const Product = require("../models/Product");
+const Category = require("../models/Category");
+const DeliveryOption = require("../models/DeliveryOption");
+const Message = require("../models/Message");
+const PaymentProof = require("../models/PaymentProof");
 
 module.exports = {
   get: async (req, res) => {
     try {
-      const { limit, currentPage, status, dates } = req.body;
+      const { limit, currentPage, status, dates, page } = req.body;
+      const offset = (page - 1) * limit;
 
       const query = {
         where: {
@@ -39,67 +40,108 @@ module.exports = {
         };
       }
 
+      if (offset) {
+        query.offset = offset;
+      }
+
       const { count, rows } = await InvoiceHeader.findAndCountAll({
         ...query,
         attributes: [
-          'id',
-          'notes',
-          'is_received',
-          'invoice_path',
-          'createdAt',
-          'status',
+          "id",
+          "notes",
+          "is_received",
+          "invoice_path",
+          "createdAt",
+          "status",
           [
-            sequelize.literal(`(SELECT SUM(price * quantity) FROM invoiceitems WHERE invoiceitems.invoiceheaderId = invoiceheader.id)`),
-            'total',
+            sequelize.literal(
+              `(SELECT SUM(price * quantity) FROM invoiceitems WHERE invoiceitems.invoiceheaderId = invoiceheader.id)`
+            ),
+            "total",
           ],
         ],
         include: [
           {
             model: InvoiceItem,
-            attributes: ['price', 'quantity', 'subtotal'],
+            attributes: ["price", "quantity", "subtotal"],
             include: [
               {
                 model: Product,
-                include: [{ model: Category, attributes: ['name'] }],
-                attributes: ['name', 'image', 'unit', 'id'],
+                include: [{ model: Category, attributes: ["name"] }],
+                attributes: ["name", "image", "unit", "id"],
                 paranoid: false,
               },
             ],
             required: true,
           },
           { model: PaymentProof, attributes: [], required: true },
-          { model: User, attributes: ['name', 'phone_number'], required: true },
-          { model: Address, attributes: ['address', 'city', 'province', 'country', 'postalcode'], paranoid: false, required: true },
-          { model: DeliveryOption, attributes: ['name', 'cost'], required: true, paranoid: false },
+          { model: User, attributes: ["name", "phone_number"], required: true },
+          {
+            model: Address,
+            attributes: [
+              "address",
+              "city",
+              "province",
+              "country",
+              "postalcode",
+            ],
+            paranoid: false,
+            required: true,
+          },
+          {
+            model: DeliveryOption,
+            attributes: ["name", "cost"],
+            required: true,
+            paranoid: false,
+          },
         ],
-        order: [['createdAt', 'desc']],
+        order: [["createdAt", "desc"]],
         distinct: true,
       });
 
-      res.status(200).send({ invoices: rows, maxPage: Math.ceil(count / limit) || 1, count });
+      res.status(200).send({
+        invoices: rows,
+        maxPage: Math.ceil(count / limit) || 1,
+        count,
+      });
     } catch (err) {
       res.status(500).send(err);
     }
   },
   received: async (req, res) => {
     try {
-      const invoiceData = await InvoiceHeader.findOne({ where: { id: req.params.id, userId: req.user.id } });
+      const invoiceData = await InvoiceHeader.findOne({
+        where: { id: req.params.id, userId: req.user.id },
+      });
 
-      if (invoiceData.status !== 'approved') {
-        res.send({ conflict: true, message: 'Please wait until this invoice is approved!' });
+      if (invoiceData.status !== "approved") {
+        res.send({
+          conflict: true,
+          message: "Please wait until this invoice is approved!",
+        });
       } else if (invoiceData.is_received === true) {
-        res.send({ conflict: true, message: 'You already received this order' });
+        res.send({
+          conflict: true,
+          message: "You already received this order",
+        });
       } else {
-        await InvoiceHeader.update({ is_received: true }, { where: { id: req.params.id, userId: req.user.id } });
+        await InvoiceHeader.update(
+          { is_received: true },
+          { where: { id: req.params.id, userId: req.user.id } }
+        );
 
         await Message.create({
           userId: req.user.id,
-          to: 'admin',
+          to: "admin",
           header: `Invoice #${req.params.id} has reached their destination`,
           content: `User ID #${req.user.id} (${req.user.name}) has informed us that Invoice #${req.params.id} has been successfully received by this user.|Thank you and have a nice day :)|**This is an automated message**`,
         });
 
-        res.status(200).send({ message: 'Thank you for letting us know you have received your order!', received: true });
+        res.status(200).send({
+          message:
+            "Thank you for letting us know you have received your order!",
+          received: true,
+        });
       }
     } catch (error) {
       res.status(500).send(err);
@@ -112,28 +154,50 @@ module.exports = {
       const data = await InvoiceHeader.findOne({
         where: { id: invoiceId },
         attributes: [
-          'id',
-          'notes',
-          'status',
-          'createdAt',
+          "id",
+          "notes",
+          "status",
+          "createdAt",
           [
-            sequelize.literal(`(SELECT SUM(price * quantity) FROM invoiceitems WHERE invoiceitems.invoiceheaderId = invoiceheader.id)`),
-            'total',
+            sequelize.literal(
+              `(SELECT SUM(price * quantity) FROM invoiceitems WHERE invoiceitems.invoiceheaderId = invoiceheader.id)`
+            ),
+            "total",
           ],
         ],
         include: [
           {
             model: InvoiceItem,
-            attributes: ['id', 'price', 'quantity', 'subtotal'],
-            include: [{ model: Product, attributes: ['name', 'image', 'unit'], paranoid: false }],
+            attributes: ["id", "price", "quantity", "subtotal"],
+            include: [
+              {
+                model: Product,
+                attributes: ["name", "image", "unit"],
+                paranoid: false,
+              },
+            ],
           },
-          { model: User, attributes: ['name', 'phone_number'] },
-          { model: Address, attributes: ['address', 'city', 'province', 'country', 'postalcode'], paranoid: false },
-          { model: DeliveryOption, attributes: ['name', 'cost'], paranoid: false },
+          { model: User, attributes: ["name", "phone_number"] },
+          {
+            model: Address,
+            attributes: [
+              "address",
+              "city",
+              "province",
+              "country",
+              "postalcode",
+            ],
+            paranoid: false,
+          },
+          {
+            model: DeliveryOption,
+            attributes: ["name", "cost"],
+            paranoid: false,
+          },
         ],
       });
 
-      res.render('invoice', { data: data.toJSON() });
+      res.render("invoice", { data: data.toJSON() });
     } catch (err) {
       res.status(500).send(err);
     }
@@ -152,13 +216,15 @@ module.exports = {
       const { limit, currentPage, sort } = req.body;
 
       const { rows, count } = await InvoiceHeader.findAndCountAll({
-        where: { userId: req.user.id, status: 'awaiting' },
+        where: { userId: req.user.id, status: "awaiting" },
         attributes: [
-          'id',
-          'createdAt',
+          "id",
+          "createdAt",
           [
-            sequelize.literal(`(SELECT SUM(price * quantity) FROM invoiceitems WHERE invoiceitems.invoiceheaderId = invoiceheader.id)`),
-            'total',
+            sequelize.literal(
+              `(SELECT SUM(price * quantity) FROM invoiceitems WHERE invoiceitems.invoiceheaderId = invoiceheader.id)`
+            ),
+            "total",
           ],
         ],
         include: [
@@ -167,12 +233,11 @@ module.exports = {
             attributes: ['id', 'price', 'quantity', 'subtotal'],
             include: [{ model: Product, attributes: ['name', 'image', 'unit', 'deletedAt'], paranoid: false }],
           },
-          { model: DeliveryOption, attributes: ['name', 'cost'], paranoid: false },
         ],
         limit,
         offset: limit * currentPage - limit,
         distinct: true,
-        order: [sort.split(',')],
+        order: [sort.split(",")],
       });
 
       const expiredInvoices = rows.filter(
@@ -290,7 +355,9 @@ module.exports = {
           });
         }
       } else {
-        res.status(200).send({ rows, count, maxPage: Math.ceil(count / limit) || 1 });
+        res
+          .status(200)
+          .send({ rows, count, maxPage: Math.ceil(count / limit) || 1 });
       }
     } catch (err) {
       res.status(500).send(err);

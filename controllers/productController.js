@@ -217,7 +217,9 @@ module.exports = {
           limit,
         });
 
-        result.relatedProducts = relatedProducts.filter((related) => related.id !== product.id);
+        result.relatedProducts = relatedProducts.filter(
+          (related) => related.id !== product.id
+        );
       }
 
       res.status(200).send(result);
