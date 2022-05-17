@@ -181,13 +181,19 @@ io.on('connection', (socket) => {
     }
   });
 
-  socket.on('newTransaction', async () => {
+  socket.on('newTransaction', () => {
+    if (admins.length) {
+      admins.forEach((admin) => io.to(admin.socketId).emit('newTransactionNotif'));
+    }
+  });
+
+  socket.on('newPayment', async () => {
     if (admins.length) {
       const totalNotif = await Message.count({
         where: { to: 'admin', is_new: true },
       });
 
-      admins.forEach((admin) => io.to(admin.socketId).emit('newAdminTransaction', totalNotif));
+      admins.forEach((admin) => io.to(admin.socketId).emit('newPaymentNotif', totalNotif));
     }
   });
 
@@ -200,6 +206,18 @@ io.on('connection', (socket) => {
       });
 
       io.to(userData.socketId).emit('newUserNotif', totalNotif);
+    }
+  });
+
+  socket.on('userPayment', async (userId) => {
+    const userData = users.find((user) => user.id === userId);
+
+    if (userData) {
+      const totalNotif = await Message.count({
+        where: { userId, to: 'user', is_new: true },
+      });
+
+      io.to(userData.socketId).emit('newUserPayment', totalNotif);
     }
   });
 
