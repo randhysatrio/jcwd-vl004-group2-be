@@ -43,7 +43,6 @@ module.exports = {
         keyword,
         category,
         limit,
-        offset,
         appearance,
         sort_price_sell,
         sort_price_buy,
@@ -59,6 +58,7 @@ module.exports = {
         fromDashboardAdmin,
         sort,
       } = req.body;
+      const offset = (activePage - 1) * limit;
 
       const query = {
         limit,
