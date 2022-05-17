@@ -149,9 +149,9 @@ module.exports = {
   },
   getAwaiting: async (req, res) => {
     try {
-      const { limit, currentPage } = req.body;
+      const { limit, currentPage, sort } = req.body;
 
-      const { rows, count } = await InvoiceHeader.findAndCountAll({
+      let { rows, count } = await InvoiceHeader.findAndCountAll({
         where: { userId: req.user.id, status: 'awaiting' },
         attributes: [
           'id',
@@ -172,7 +172,7 @@ module.exports = {
         limit,
         offset: limit * currentPage - limit,
         distinct: true,
-        order: [['createdAt', 'DESC']],
+        order: [sort.split(',')],
       });
 
       const expiredInvoices = rows.filter((invoice) => Date.now() > addDays(new Date(invoice.createdAt), 1));
@@ -182,16 +182,18 @@ module.exports = {
 
         await InvoiceHeader.destroy({ where: { id: expiredInvoiceId } });
 
-        const filteredRows = rows.filter((row, index) => row.id !== expiredInvoiceId[index]);
+        expiredInvoiceId.forEach((id) => {
+          const rowId = rows.findIndex((row) => row.id === id);
 
-        res
-          .status(200)
-          .send({
-            rows: filteredRows,
-            count: count - expiredInvoiceId.length,
-            maxPage: Math.ceil((count - expiredInvoiceId.length) / limit) || 1,
-            expiredInvoices: expiredInvoiceId.length,
-          });
+          rows.splice(rowId, 1);
+        });
+
+        res.status(200).send({
+          rows,
+          count: count - expiredInvoiceId.length,
+          maxPage: Math.ceil((count - expiredInvoiceId.length) / limit) || 1,
+          expiredInvoices: expiredInvoiceId.length,
+        });
       } else {
         res.status(200).send({ rows, count, maxPage: Math.ceil(count / limit) || 1 });
       }

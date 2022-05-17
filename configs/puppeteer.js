@@ -38,7 +38,7 @@ module.exports = {
         path: pdfPath,
       });
 
-      console.log('Invoice PDF created!');
+      console.log(`Invoice #${data.id} PDF created!`);
 
       await browser.close();
 
