@@ -2,6 +2,7 @@ const InvoiceItem = require('../models/InvoiceItem');
 const Product = require('../models/Product');
 const sequelize = require('../configs/sequelize');
 const { Op } = require('sequelize');
+const { startOfDay, endOfDay } = require('date-fns');
 
 module.exports = {
   getReport: async (req, res) => {
@@ -20,15 +21,9 @@ module.exports = {
       let year = fullDate.getFullYear();
 
       // date
-      startDate = startDate
-        ? new Date(startDate)
-        : new Date(`${year}-${month}-01`);
-      startDate.setUTCHours(0, 0, 0, 0);
+      startDate ? null : (startDate = new Date(`${year}-${month}-01`));
 
-      endDate = endDate
-        ? new Date(endDate)
-        : new Date(`${year}-${month}-${date}`);
-      endDate.setUTCHours(23, 59, 59, 999);
+      endDate ? null : (endDate = new Date(`${year}-${month}-${date}`));
 
       // get data for count
       const countData = await InvoiceItem.findAll({
@@ -59,13 +54,11 @@ module.exports = {
           ],
         ],
         where: {
-          [Op.and]: {
-            createdAt: {
-              [Op.lt]: endDate,
-              [Op.gt]: startDate,
-            },
-            '$product.name$': { [Op.like]: `%${search}%` },
+          createdAt: {
+            [Op.lt]: endOfDay(new Date(endDate)),
+            [Op.gt]: startOfDay(new Date(startDate)),
           },
+          '$product.name$': { [Op.like]: `%${search}%` },
         },
         include: [{ model: Product, attributes: [] }],
         raw: true,
@@ -131,8 +124,8 @@ module.exports = {
         ],
         where: {
           createdAt: {
-            [Op.lt]: endDate,
-            [Op.gt]: startDate,
+            [Op.lt]: endOfDay(new Date(endDate)),
+            [Op.gt]: startOfDay(new Date(startDate)),
           },
           '$product.name$': { [Op.like]: `%${search}%` },
         },

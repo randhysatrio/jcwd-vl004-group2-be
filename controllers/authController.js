@@ -43,7 +43,7 @@ module.exports = {
           <p>Thank you for joining Heizen Berg Co.</p>
           <P>We are glad to have you as part of the Heizen Berg Co. community!</p>
           <p>Please verify your account by clicking the link below:</p>
-          <a href="http://localhost:3000/verify/${verificationToken}">Verify My Account</a>
+          <a href="${process.env.CLIENT_URL}/verify/${verificationToken}">Verify My Account</a>
           <br/>
           <p>Regards, </p>
           <p><b>The Heizen Berg Co. Admin Team</b></p>`,
@@ -128,7 +128,7 @@ module.exports = {
         <p>Dear ${userData.name},</p>
         <br/>
         <p>Here are the link you've requested to change your account password:</p>
-        <a href="http://localhost:3000/changepassword/${token}">Link</a>
+        <a href="${process.env.CLIENT_URL}/changepassword/${token}">Link</a>
         <p>On a side note, this link will only be valid for <b>30 minutes</b> starting from the time this email is sent to you</p>
         <br/>
         <p><i>(Please ignore this email if you didn't requested for password change and immediately contact the Heizen Berg admin team at admin@heizenbergco.com)</i></p>
