@@ -21,9 +21,9 @@ module.exports = {
         ],
       });
 
-      const maxPage = Math.ceil(count / limit);
+      const maxPage = Math.ceil(count / limit) || 1;
 
-      res.status(200).send({ rows, maxPage });
+      res.status(200).send({ rows, maxPage, count });
     } catch (err) {
       res.status(500).send(err);
     }
@@ -90,7 +90,7 @@ module.exports = {
   },
   delete: async (req, res) => {
     try {
-      const { productId, limit } = req.body;
+      const { productId, limit, currentPage } = req.body;
 
       await Review.destroy({ where: { id: req.params.id } });
 
@@ -104,6 +104,7 @@ module.exports = {
       const { rows, count } = await Review.findAndCountAll({
         where: { productId },
         limit,
+        offset: limit * currentPage - limit,
         include: [
           { model: User, attributes: ['name', 'profile_picture'] },
           { model: Like, attributes: ['userId'] },
