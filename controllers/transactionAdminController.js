@@ -17,7 +17,7 @@ module.exports = {
   getTransaction: async (req, res) => {
     try {
       // sort and { sort } is different
-      const { sort, startDate, endDate, search, page } = req.body;
+      const { sort, startDate, endDate, status, page } = req.body;
       const limit = 5;
       const offset = (page - 1) * limit;
 
@@ -29,6 +29,9 @@ module.exports = {
         query.order = [sort.split(",")];
       }
 
+      if (status) {
+        query.where = { ...query.where, status };
+      }
       if (startDate || endDate) {
         query.where = {
           ...query.where,
@@ -57,9 +60,25 @@ module.exports = {
       const { rows, count } = await InvoiceHeader.findAndCountAll({
         ...query,
         include: [
-          { model: User, attributes: ['name'], required: true },
-          { model: Address, attributes: ['address', 'city', 'province', 'country', 'postalcode'], required: true, paranoid: false },
-          { model: DeliveryOption, attributes: ['name'], required: true, paranoid: false },
+          { model: User, attributes: ["name"], required: true },
+          {
+            model: Address,
+            attributes: [
+              "address",
+              "city",
+              "province",
+              "country",
+              "postalcode",
+            ],
+            required: true,
+            paranoid: false,
+          },
+          {
+            model: DeliveryOption,
+            attributes: ["name"],
+            required: true,
+            paranoid: false,
+          },
           { model: PaymentProof },
           {
             model: InvoiceItem,
@@ -148,7 +167,7 @@ module.exports = {
 
         setTimeout(async () => {
           await transporter.sendMail({
-            from: 'HeizenbergAdmin <admin@heizenbergco.com>',
+            from: "HeizenbergAdmin <admin@heizenbergco.com>",
             to: `${transaction.user.email}`,
             subject: `Payment Approved for Invoice #${transaction.id}`,
             html: `
@@ -160,9 +179,11 @@ module.exports = {
             <p><b>The Heizen Berg Co. Admin Team</b></p>`,
             attachments: [
               {
-                filename: `${transaction.user.name.replace(' ', '')}_invoice_${transaction.id}.pdf`,
+                filename: `${transaction.user.name.replace(" ", "")}_invoice_${
+                  transaction.id
+                }.pdf`,
                 path: path.resolve(invoicePdfPath),
-                contentType: 'application/pdf',
+                contentType: "application/pdf",
               },
             ],
           });
@@ -185,8 +206,14 @@ module.exports = {
         include: [
           {
             model: InvoiceItem,
-            attributes: ['price', 'quantity', 'subtotal', 'id'],
-            include: [{ model: Product, attributes: ['name', 'image', 'unit'], paranoid: false }],
+            attributes: ["price", "quantity", "subtotal", "id"],
+            include: [
+              {
+                model: Product,
+                attributes: ["name", "image", "unit"],
+                paranoid: false,
+              },
+            ],
           },
         ],
       });
@@ -204,7 +231,7 @@ module.exports = {
         setTimeout(async () => {
           await Message.create({
             userId: transaction.userId,
-            to: 'user',
+            to: "user",
             adminId: id,
             header: `Payment Rejected for Invoice #${transaction.id}`,
             content: `Hello, ${transaction.user.name}!|We're sorry to inform you that we have rejected the payment you've made for Invoice #${transaction.id}.|Furthermore, in line with our applied terms and conditions, you will received your money back in 1x24h time. If you have any questions just send us an email at admin@heizenbergco.com|Regards,`,
