@@ -15,8 +15,7 @@ const PaymentMethod = require('../models/PaymentMethod');
 module.exports = {
   addCheckout: async (req, res) => {
     try {
-      let { notes, addressId, deliveryoptionId, orderItems, paymentmethodId } =
-        req.body.dataCheckout;
+      let { notes, addressId, deliveryoptionId, orderItems, paymentmethodId } = req.body.dataCheckout;
 
       // create invoice header
       const newInvoiceHeader = await InvoiceHeader.create(
@@ -60,9 +59,7 @@ module.exports = {
         Product.update(
           {
             stock_in_unit: item.product.stock_in_unit - item.quantity,
-            stock: Math.floor(
-              (item.product.stock_in_unit - item.quantity) / item.product.volume
-            ),
+            stock: Math.floor((item.product.stock_in_unit - item.quantity) / item.product.volume),
           },
           { where: { id: item.product.id } }
         );
@@ -84,11 +81,11 @@ module.exports = {
       const deliveryoptions = await DeliveryOption.findAll({});
       const addresses = await Address.findAll({
         where: {
-          userId: req.user.id
-        }
-      })
+          userId: req.user.id,
+        },
+      });
 
-      res.status(200).send({ payments, deliveryoptions, addresses});
+      res.status(200).send({ payments, deliveryoptions, addresses });
     } catch (error) {
       res.status(500).send({ message: error.message });
     }
@@ -133,9 +130,7 @@ module.exports = {
       // multer
       upload(req, res, async (error) => {
         try {
-          let { invoiceheaderId, currentPage, limit } = JSON.parse(
-            req.body.data
-          );
+          let { invoiceheaderId, currentPage, limit } = JSON.parse(req.body.data);
 
           const checkIsUploaded = await PaymentProof.findOne({
             where: {
@@ -156,10 +151,7 @@ module.exports = {
             invoiceheaderId,
           });
 
-          await InvoiceHeader.update(
-            { status: 'pending' },
-            { where: { id: invoiceheaderId } }
-          );
+          await InvoiceHeader.update({ status: 'pending' }, { where: { id: invoiceheaderId } });
 
           await Message.create({
             userId: req.user.id,
@@ -232,9 +224,7 @@ module.exports = {
           {
             model: InvoiceItem,
             attributes: ['quantity', 'productId'],
-            include: [
-              { model: Product, attributes: ['stock_in_unit', 'volume'] },
-            ],
+            include: [{ model: Product, attributes: ['stock_in_unit', 'volume'] }],
           },
         ],
       });
@@ -243,9 +233,7 @@ module.exports = {
         Product.update(
           {
             stock_in_unit: item.product.stock_in_unit + item.quantity,
-            stock: Math.floor(
-              (item.product.stock_in_unit + item.quantity) / item.product.volume
-            ),
+            stock: Math.floor((item.product.stock_in_unit + item.quantity) / item.product.volume),
           },
           { where: { id: item.productId } }
         );
@@ -259,9 +247,7 @@ module.exports = {
           'id',
           'createdAt',
           [
-            sequelize.literal(
-              `(SELECT SUM(price * quantity) FROM invoiceitems WHERE invoiceitems.invoiceheaderId = invoiceheader.id)`
-            ),
+            sequelize.literal(`(SELECT SUM(price * quantity) FROM invoiceitems WHERE invoiceitems.invoiceheaderId = invoiceheader.id)`),
             'total',
           ],
         ],
@@ -300,14 +286,12 @@ module.exports = {
   getAwaiting: async (req, res) => {
     try {
       const response = await InvoiceHeader.findOne({
-        where: { id: req.params.id, status: 'awaiting' },
+        where: { id: req.params.id, userId: req.user.id, status: 'awaiting' },
         attributes: [
           'id',
           'createdAt',
           [
-            sequelize.literal(
-              `(SELECT SUM(price * quantity) FROM invoiceitems WHERE invoiceitems.invoiceheaderId = invoiceheader.id)`
-            ),
+            sequelize.literal(`(SELECT SUM(price * quantity) FROM invoiceitems WHERE invoiceitems.invoiceheaderId = invoiceheader.id)`),
             'total',
           ],
         ],
@@ -321,7 +305,7 @@ module.exports = {
         ],
       });
 
-      res.status(200).send({ data: response});
+      res.status(200).send({ data: response });
     } catch (error) {
       res.status(500).send({ message: error.message });
     }

@@ -151,7 +151,7 @@ module.exports = {
     try {
       const { limit, currentPage, sort } = req.body;
 
-      let { rows, count } = await InvoiceHeader.findAndCountAll({
+      const { rows, count } = await InvoiceHeader.findAndCountAll({
         where: { userId: req.user.id, status: 'awaiting' },
         attributes: [
           'id',
@@ -182,18 +182,31 @@ module.exports = {
 
         await InvoiceHeader.destroy({ where: { id: expiredInvoiceId } });
 
-        expiredInvoiceId.forEach((id) => {
-          const rowId = rows.findIndex((row) => row.id === id);
-
-          rows.splice(rowId, 1);
+        const { rows, count } = await InvoiceHeader.findAndCountAll({
+          where: { userId: req.user.id, status: 'awaiting' },
+          attributes: [
+            'id',
+            'createdAt',
+            [
+              sequelize.literal(`(SELECT SUM(price * quantity) FROM invoiceitems WHERE invoiceitems.invoiceheaderId = invoiceheader.id)`),
+              'total',
+            ],
+          ],
+          include: [
+            {
+              model: InvoiceItem,
+              attributes: ['id', 'price', 'quantity', 'subtotal'],
+              include: [{ model: Product, attributes: ['name', 'image', 'unit'], paranoid: false }],
+            },
+            { model: DeliveryOption, attributes: ['name', 'cost'], paranoid: false },
+          ],
+          limit,
+          offset: limit * currentPage - limit,
+          distinct: true,
+          order: [sort.split(',')],
         });
 
-        res.status(200).send({
-          rows,
-          count: count - expiredInvoiceId.length,
-          maxPage: Math.ceil((count - expiredInvoiceId.length) / limit) || 1,
-          expiredInvoices: expiredInvoiceId.length,
-        });
+        res.status(200).send({ rows, count, maxPage: Math.ceil(count / limit) || 1, expiredInvoices: expiredInvoiceId.length });
       } else {
         res.status(200).send({ rows, count, maxPage: Math.ceil(count / limit) || 1 });
       }
