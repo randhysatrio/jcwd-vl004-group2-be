@@ -149,7 +149,7 @@ module.exports = {
   },
   getAwaiting: async (req, res) => {
     try {
-      const { limit, currentPage } = req.body;
+      const { limit, currentPage, sort } = req.body;
 
       const { rows, count } = await InvoiceHeader.findAndCountAll({
         where: { userId: req.user.id, status: 'awaiting' },
@@ -172,7 +172,7 @@ module.exports = {
         limit,
         offset: limit * currentPage - limit,
         distinct: true,
-        order: [['createdAt', 'DESC']],
+        order: [sort.split(',')],
       });
 
       const expiredInvoices = rows.filter((invoice) => Date.now() > addDays(new Date(invoice.createdAt), 1));
@@ -182,16 +182,31 @@ module.exports = {
 
         await InvoiceHeader.destroy({ where: { id: expiredInvoiceId } });
 
-        const filteredRows = rows.filter((row, index) => row.id !== expiredInvoiceId[index]);
+        const { rows, count } = await InvoiceHeader.findAndCountAll({
+          where: { userId: req.user.id, status: 'awaiting' },
+          attributes: [
+            'id',
+            'createdAt',
+            [
+              sequelize.literal(`(SELECT SUM(price * quantity) FROM invoiceitems WHERE invoiceitems.invoiceheaderId = invoiceheader.id)`),
+              'total',
+            ],
+          ],
+          include: [
+            {
+              model: InvoiceItem,
+              attributes: ['id', 'price', 'quantity', 'subtotal'],
+              include: [{ model: Product, attributes: ['name', 'image', 'unit'], paranoid: false }],
+            },
+            { model: DeliveryOption, attributes: ['name', 'cost'], paranoid: false },
+          ],
+          limit,
+          offset: limit * currentPage - limit,
+          distinct: true,
+          order: [sort.split(',')],
+        });
 
-        res
-          .status(200)
-          .send({
-            rows: filteredRows,
-            count: count - expiredInvoiceId.length,
-            maxPage: Math.ceil((count - expiredInvoiceId.length) / limit) || 1,
-            expiredInvoices: expiredInvoiceId.length,
-          });
+        res.status(200).send({ rows, count, maxPage: Math.ceil(count / limit) || 1, expiredInvoices: expiredInvoiceId.length });
       } else {
         res.status(200).send({ rows, count, maxPage: Math.ceil(count / limit) || 1 });
       }
