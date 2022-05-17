@@ -1,18 +1,16 @@
+require('dotenv').config();
 const passport = require('passport');
 const User = require('../models/User');
 const { createVerificationToken } = require('../configs/jwtuser');
 const transporter = require('./nodemailer');
-
-const GOOGLE_CLIENT_ID = '454661987895-tq6a86lgbfst3gjunn19qsnm1c31f8va.apps.googleusercontent.com';
-const GOOGLE_CLIENT_SECRET = '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';
 
 var GoogleStrategy = require('passport-google-oauth20').Strategy;
 
 passport.use(
   new GoogleStrategy(
     {
-      clientID: GOOGLE_CLIENT_ID,
-      clientSecret: GOOGLE_CLIENT_SECRET,
+      clientID: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
       callbackURL: '/auth/google/callback',
       scope: ['profile', 'email'],
     },
