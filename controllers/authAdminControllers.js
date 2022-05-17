@@ -87,7 +87,7 @@ module.exports = {
           from: 'Admin Heizen Berg Co',
           to: `${email}`,
           subject: 'Reset Password',
-          html: `<a href="http://localhost:3000/admin/change-password/${token}">Click here to reset your password!</a>`,
+          html: `<a href="${process.env.CLIENT_URL}/admin/change-password/${token}">Click here to reset your password!</a>`,
         };
 
         // Send link for reset password
