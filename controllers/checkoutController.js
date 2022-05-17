@@ -10,19 +10,22 @@ const Product = require('../models/Product');
 const { paymentUploader } = require('../configs/uploader');
 const fs = require('fs');
 const Message = require('../models/Message');
+const PaymentMethod = require('../models/PaymentMethod');
 
 module.exports = {
   addCheckout: async (req, res) => {
     try {
-      let { notes, addressId, userId, deliveryoptionId, orderItems } = req.body.dataCheckout;
+      let { notes, addressId, deliveryoptionId, orderItems, paymentmethodId } =
+        req.body.dataCheckout;
 
       // create invoice header
       const newInvoiceHeader = await InvoiceHeader.create(
         {
           notes,
           addressId,
-          userId,
+          userId: req.user.id,
           deliveryoptionId,
+          paymentmethodId,
         },
         { raw: true }
       );
@@ -57,7 +60,9 @@ module.exports = {
         Product.update(
           {
             stock_in_unit: item.product.stock_in_unit - item.quantity,
-            stock: Math.floor((item.product.stock_in_unit - item.quantity) / item.product.volume),
+            stock: Math.floor(
+              (item.product.stock_in_unit - item.quantity) / item.product.volume
+            ),
           },
           { where: { id: item.product.id } }
         );
@@ -73,11 +78,17 @@ module.exports = {
       res.status(500).send({ message: error.message });
     }
   },
-  getDelivery: async (req, res) => {
+  getCheckoutOptions: async (req, res) => {
     try {
-      const response = await DeliveryOption.findAll({});
+      const payments = await PaymentMethod.findAll({});
+      const deliveryoptions = await DeliveryOption.findAll({});
+      const addresses = await Address.findAll({
+        where: {
+          userId: req.user.id
+        }
+      })
 
-      res.status(200).send({ data: response });
+      res.status(200).send({ payments, deliveryoptions, addresses});
     } catch (error) {
       res.status(500).send({ message: error.message });
     }
@@ -95,7 +106,7 @@ module.exports = {
   },
   addAddress: async (req, res) => {
     try {
-      const { address, city, province, country, postalcode, userId } = req.body;
+      const { address, city, province, country, postalcode } = req.body;
 
       await Address.create({
         address,
@@ -103,10 +114,14 @@ module.exports = {
         province,
         country,
         postalcode,
-        userId,
+        userId: req.user.id,
       });
 
-      res.status(200).send({ message: 'New address added' });
+      const response = await Address.findAll({
+        where: { userId: req.user.id },
+      });
+
+      res.status(200).send({ data: response, message: 'New address added' });
     } catch (error) {
       res.status(500).send({ message: error.message });
     }
@@ -118,7 +133,9 @@ module.exports = {
       // multer
       upload(req, res, async (error) => {
         try {
-          let { invoiceheaderId, currentPage, limit } = JSON.parse(req.body.data);
+          let { invoiceheaderId, currentPage, limit } = JSON.parse(
+            req.body.data
+          );
 
           const checkIsUploaded = await PaymentProof.findOne({
             where: {
@@ -139,7 +156,10 @@ module.exports = {
             invoiceheaderId,
           });
 
-          await InvoiceHeader.update({ status: 'pending' }, { where: { id: invoiceheaderId } });
+          await InvoiceHeader.update(
+            { status: 'pending' },
+            { where: { id: invoiceheaderId } }
+          );
 
           await Message.create({
             userId: req.user.id,
@@ -165,15 +185,30 @@ module.exports = {
                 {
                   model: InvoiceItem,
                   attributes: ['id', 'price', 'quantity', 'subtotal'],
-                  include: [{ model: Product, attributes: ['name', 'image', 'unit'], paranoid: false }],
+                  include: [
+                    {
+                      model: Product,
+                      attributes: ['name', 'image', 'unit'],
+                      paranoid: false,
+                    },
+                  ],
                 },
-                { model: DeliveryOption, attributes: ['name', 'cost'], paranoid: false },
+                {
+                  model: DeliveryOption,
+                  attributes: ['name', 'cost'],
+                  paranoid: false,
+                },
               ],
               limit,
               offset: limit * currentPage - limit,
             });
 
-            res.status(200).send({ message: 'file uploaded', rows, count, maxPage: Math.ceil(count / limit) || 1 });
+            res.status(200).send({
+              message: 'file uploaded',
+              rows,
+              count,
+              maxPage: Math.ceil(count / limit) || 1,
+            });
           } else {
             res.status(200).send({ message: 'file uploaded' });
           }
@@ -197,7 +232,9 @@ module.exports = {
           {
             model: InvoiceItem,
             attributes: ['quantity', 'productId'],
-            include: [{ model: Product, attributes: ['stock_in_unit', 'volume'] }],
+            include: [
+              { model: Product, attributes: ['stock_in_unit', 'volume'] },
+            ],
           },
         ],
       });
@@ -206,7 +243,9 @@ module.exports = {
         Product.update(
           {
             stock_in_unit: item.product.stock_in_unit + item.quantity,
-            stock: Math.floor((item.product.stock_in_unit + item.quantity) / item.product.volume),
+            stock: Math.floor(
+              (item.product.stock_in_unit + item.quantity) / item.product.volume
+            ),
           },
           { where: { id: item.productId } }
         );
@@ -220,7 +259,9 @@ module.exports = {
           'id',
           'createdAt',
           [
-            sequelize.literal(`(SELECT SUM(price * quantity) FROM invoiceitems WHERE invoiceitems.invoiceheaderId = invoiceheader.id)`),
+            sequelize.literal(
+              `(SELECT SUM(price * quantity) FROM invoiceitems WHERE invoiceitems.invoiceheaderId = invoiceheader.id)`
+            ),
             'total',
           ],
         ],
@@ -228,17 +269,61 @@ module.exports = {
           {
             model: InvoiceItem,
             attributes: ['id', 'price', 'quantity', 'subtotal'],
-            include: [{ model: Product, attributes: ['name', 'image', 'unit'], paranoid: false }],
+            include: [
+              {
+                model: Product,
+                attributes: ['name', 'image', 'unit'],
+                paranoid: false,
+              },
+            ],
           },
-          { model: DeliveryOption, attributes: ['name', 'cost'], paranoid: false },
+          {
+            model: DeliveryOption,
+            attributes: ['name', 'cost'],
+            paranoid: false,
+          },
         ],
         limit,
         offset: limit * currentPage - limit,
       });
 
-      res.status(200).send({ message: 'Transaction cancelled', rows, count, maxPage: Math.ceil(count / limit) || 1 });
+      res.status(200).send({
+        message: 'Transaction cancelled',
+        rows,
+        count,
+        maxPage: Math.ceil(count / limit) || 1,
+      });
     } catch (err) {
       res.status(500).send(err);
+    }
+  },
+  getAwaiting: async (req, res) => {
+    try {
+      const response = await InvoiceHeader.findOne({
+        where: { id: req.params.id, status: 'awaiting' },
+        attributes: [
+          'id',
+          'createdAt',
+          [
+            sequelize.literal(
+              `(SELECT SUM(price * quantity) FROM invoiceitems WHERE invoiceitems.invoiceheaderId = invoiceheader.id)`
+            ),
+            'total',
+          ],
+        ],
+        include: [
+          {
+            model: DeliveryOption,
+            attributes: ['name', 'cost'],
+            paranoid: false,
+          },
+          { model: PaymentMethod, paranoid: false },
+        ],
+      });
+
+      res.status(200).send({ data: response});
+    } catch (error) {
+      res.status(500).send({ message: error.message });
     }
   },
 };

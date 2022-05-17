@@ -73,7 +73,7 @@ app.use(passport.session());
 (async () => {
   try {
     await sequelize.authenticate();
-    // await sequelize.sync({ alter: true });
+    await sequelize.sync({ alter: true });
     console.log('sequelize connection success!');
   } catch (error) {
     console.log(error);
