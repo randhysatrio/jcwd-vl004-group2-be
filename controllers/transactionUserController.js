@@ -96,7 +96,7 @@ module.exports = {
           userId: req.user.id,
           to: 'admin',
           header: `Invoice #${req.params.id} has reached their destination`,
-          content: `User ID #${req.user.id} (${req.user.name}) has informed us that Invoice ID# ${req.params.id} has been successfully received by this user.|Thank you and have a nice day :)|**This is an automated message**`,
+          content: `User ID #${req.user.id} (${req.user.name}) has informed us that Invoice #${req.params.id} has been successfully received by this user.|Thank you and have a nice day :)|**This is an automated message**`,
         });
 
         res.status(200).send({ message: 'Thank you for letting us know you have received your order!', received: true });

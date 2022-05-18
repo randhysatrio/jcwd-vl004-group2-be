@@ -169,6 +169,8 @@ module.exports = {
           message: 'Invoice updated successfully!',
           userId: transaction.userId,
         });
+      } else {
+        res.send({ conflict: true, message: 'This invoice status is already updated!', status: transaction.status });
       }
     } catch (error) {
       res.status(500).send(error);
@@ -182,7 +184,7 @@ module.exports = {
         include: [
           {
             model: InvoiceItem,
-            attributes: ['price', 'quantity', 'subtotal', 'id'],
+            attributes: ['price', 'quantity', 'subtotal'],
             include: [
               {
                 model: Product,
@@ -190,6 +192,17 @@ module.exports = {
                 paranoid: false,
               },
             ],
+          },
+          { model: User, attributes: ['name', 'email', 'phone_number'] },
+          {
+            model: Address,
+            attributes: ['address', 'city', 'province', 'country', 'postalcode'],
+            paranoid: false,
+          },
+          {
+            model: DeliveryOption,
+            attributes: ['name', 'cost'],
+            paranoid: false,
           },
         ],
       });
@@ -204,38 +217,38 @@ module.exports = {
           }
         );
 
-        setTimeout(async () => {
-          await Message.create({
-            userId: transaction.userId,
-            to: 'user',
-            adminId: id,
-            header: `Payment Rejected for Invoice #${transaction.id}`,
-            content: `Hello, ${transaction.user.name}!|We're sorry to inform you that we have rejected the payment you've made for Invoice #${transaction.id}.|Furthermore, in line with our applied terms and conditions, you will received your money back in 1x24h time. If you have any questions just send us an email at admin@heizenbergco.com|Regards,`,
-          });
-        }, 1000);
+        await Message.create({
+          userId: transaction.userId,
+          to: 'user',
+          adminId: id,
+          header: `Payment Rejected for Invoice #${transaction.id}`,
+          content: `Dear, ${transaction.user.name}|We're sorry to inform you that we have rejected the payment you've made for Invoice #${transaction.id}.|Furthermore, in line with our applied terms and conditions, you will received your money back in 1x24h time. If you have any questions just send us an email at admin@heizenbergco.com|Regards,`,
+        });
 
         const invoicePdfPath = await generatePdf(transaction);
 
-        await transporter.sendMail({
-          from: 'HeizenbergAdmin <admin@heizenbergco.com>',
-          to: `${transaction.user.email}`,
-          subject: `Payment Rejected for Invoice #${transaction.id}`,
-          html: `
-          <p>Dear, ${transaction.user.name}</p>
-          <br/>
-          <p>We're sorry to inform you that we have rejected the payment you've made for Invoice #${transaction.id}.</p>
-          <P>Furthermore, in line with our applied terms and conditions, you will received your money back in 1x24h time.</p>
-          <p>If you have any questions just send us an email at admin@heizenbergco.com</p>
-          <p>Regards, </p>
-          <p><b>The Heizen Berg Co. Admin Team</b></p>`,
-          attachments: [
-            {
-              filename: `${transaction.user.name.replace(' ', '')}_invoice_${transaction.id}.pdf`,
-              path: path.resolve(invoicePdfPath),
-              contentType: 'application/pdf',
-            },
-          ],
-        });
+        setTimeout(async () => {
+          await transporter.sendMail({
+            from: 'HeizenbergAdmin <admin@heizenbergco.com>',
+            to: `${transaction.user.email}`,
+            subject: `Payment Rejected for Invoice #${transaction.id}`,
+            html: `
+            <p>Dear, ${transaction.user.name}</p>
+            <br/>
+            <p>We're sorry to inform you that we have rejected the payment you've made for Invoice #${transaction.id}.</p>
+            <P>Furthermore, in line with our applied terms and conditions, you will received your money back in 1x24h time.</p>
+            <p>If you have any questions just send us an email at admin@heizenbergco.com</p>
+            <p>Regards, </p>
+            <p><b>The Heizen Berg Co. Admin Team</b></p>`,
+            attachments: [
+              {
+                filename: `${transaction.user.name.replace(' ', '')}_invoice_${transaction.id}.pdf`,
+                path: path.resolve(invoicePdfPath),
+                contentType: 'application/pdf',
+              },
+            ],
+          });
+        }, 1000);
 
         transaction.invoice_path = invoicePdfPath;
 
@@ -245,6 +258,8 @@ module.exports = {
           message: 'Invoice updated successfully!',
           userId: transaction.userId,
         });
+      } else {
+        res.send({ conflict: true, message: 'This invoice status is already updated!', status: transaction.status });
       }
     } catch (error) {
       res.status(500).send(error);

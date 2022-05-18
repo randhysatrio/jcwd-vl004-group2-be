@@ -128,7 +128,7 @@ module.exports = {
         <p>Dear ${userData.name},</p>
         <br/>
         <p>Here are the link you've requested to change your account password:</p>
-        <a href="${process.env.CLIENT_URL}/changepassword/${token}">Link</a>
+        <a href="${process.env.CLIENT_URL}/changepassword/${token}">Change your password</a>
         <p>On a side note, this link will only be valid for <b>30 minutes</b> starting from the time this email is sent to you</p>
         <br/>
         <p><i>(Please ignore this email if you didn't requested for password change and immediately contact the Heizen Berg admin team at admin@heizenbergco.com)</i></p>
@@ -171,7 +171,6 @@ module.exports = {
 
       res.status(200).send({ success: true, user: userData, token });
     } catch (err) {
-      console.log(err);
       res.status(500).send(err);
     }
   },
