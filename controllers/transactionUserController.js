@@ -15,8 +15,7 @@ const PaymentProof = require("../models/PaymentProof");
 module.exports = {
   get: async (req, res) => {
     try {
-      const { limit, currentPage, status, dates, page } = req.body;
-      const offset = (page - 1) * limit;
+      const { limit, currentPage, status, dates } = req.body;
 
       const query = {
         where: {
@@ -39,11 +38,7 @@ module.exports = {
           },
         };
       }
-
-      if (offset) {
-        query.offset = offset;
-      }
-
+      
       const { count, rows } = await InvoiceHeader.findAndCountAll({
         ...query,
         attributes: [
