@@ -58,7 +58,6 @@ module.exports = {
         fromDashboardAdmin,
         sort,
       } = req.body;
-      const offset = (activePage - 1) * limit;
 
       const query = {
         limit,
@@ -94,6 +93,17 @@ module.exports = {
             name: { [Op.substring]: search },
             appearance: { [Op.substring]: search },
             '$category.name$': { [Op.substring]: search },
+          },
+        };
+      }
+
+      if (search) {
+        query.where = {
+          ...query.where,
+          [Op.or]: {
+            name: { [Op.substring]: search },
+            appearance: { [Op.substring]: search },
+            "$category.name$": { [Op.substring]: search },
           },
         };
       }
