@@ -165,7 +165,7 @@ module.exports = {
           {
             model: InvoiceItem,
             attributes: ['id', 'price', 'quantity', 'subtotal'],
-            include: [{ model: Product, attributes: ['name', 'image', 'unit'], paranoid: false }],
+            include: [{ model: Product, attributes: ['name', 'image', 'unit', 'deletedAt'], paranoid: false }],
           },
           { model: DeliveryOption, attributes: ['name', 'cost'], paranoid: false },
         ],
@@ -175,38 +175,120 @@ module.exports = {
         order: [sort.split(',')],
       });
 
-      const expiredInvoices = rows.filter((invoice) => Date.now() > addDays(new Date(invoice.createdAt), 1));
+      const expiredInvoices = rows.filter(
+        (invoice) => Date.now() > addDays(new Date(invoice.createdAt), 1) || invoice.invoiceitems.some((item) => item.product.deletedAt)
+      );
 
       if (expiredInvoices.length) {
-        const expiredInvoiceId = expiredInvoices.map((invoice) => invoice.id);
+        const expiredTime = rows.filter((invoice) => Date.now() > addDays(new Date(invoice.createdAt), 1));
+        const expiredProduct = rows.filter((invoice) => invoice.invoiceitems.some((item) => item.product.deletedAt));
 
-        await InvoiceHeader.destroy({ where: { id: expiredInvoiceId } });
+        if (expiredTime.length && expiredProduct.length) {
+          const expiredInvoiceId = expiredInvoices.map((item) => item.id);
 
-        const { rows, count } = await InvoiceHeader.findAndCountAll({
-          where: { userId: req.user.id, status: 'awaiting' },
-          attributes: [
-            'id',
-            'createdAt',
-            [
-              sequelize.literal(`(SELECT SUM(price * quantity) FROM invoiceitems WHERE invoiceitems.invoiceheaderId = invoiceheader.id)`),
-              'total',
+          await InvoiceHeader.destroy({ where: { id: expiredInvoiceId } });
+
+          const { rows, count } = await InvoiceHeader.findAndCountAll({
+            where: { userId: req.user.id, status: 'awaiting' },
+            attributes: [
+              'id',
+              'createdAt',
+              [
+                sequelize.literal(`(SELECT SUM(price * quantity) FROM invoiceitems WHERE invoiceitems.invoiceheaderId = invoiceheader.id)`),
+                'total',
+              ],
             ],
-          ],
-          include: [
-            {
-              model: InvoiceItem,
-              attributes: ['id', 'price', 'quantity', 'subtotal'],
-              include: [{ model: Product, attributes: ['name', 'image', 'unit'], paranoid: false }],
-            },
-            { model: DeliveryOption, attributes: ['name', 'cost'], paranoid: false },
-          ],
-          limit,
-          offset: limit * currentPage - limit,
-          distinct: true,
-          order: [sort.split(',')],
-        });
+            include: [
+              {
+                model: InvoiceItem,
+                attributes: ['id', 'price', 'quantity', 'subtotal'],
+                include: [{ model: Product, attributes: ['name', 'image', 'unit'], paranoid: false }],
+              },
+              { model: DeliveryOption, attributes: ['name', 'cost'], paranoid: false },
+            ],
+            limit,
+            offset: limit * currentPage - limit,
+            distinct: true,
+            order: [sort.split(',')],
+          });
 
-        res.status(200).send({ rows, count, maxPage: Math.ceil(count / limit) || 1, expiredInvoices: expiredInvoiceId.length });
+          res.status(200).send({
+            rows,
+            count,
+            maxPage: Math.ceil(count / limit) || 1,
+            expiredInvoices: `We have cancelled ${expiredInvoiceId.length} transaction(s) due to possible conflicts`,
+          });
+        } else if (expiredTime.length) {
+          const expiredTimeId = expiredTime.map((item) => item.id);
+
+          await InvoiceHeader.destroy({ where: { id: expiredTimeId } });
+
+          const { rows, count } = await InvoiceHeader.findAndCountAll({
+            where: { userId: req.user.id, status: 'awaiting' },
+            attributes: [
+              'id',
+              'createdAt',
+              [
+                sequelize.literal(`(SELECT SUM(price * quantity) FROM invoiceitems WHERE invoiceitems.invoiceheaderId = invoiceheader.id)`),
+                'total',
+              ],
+            ],
+            include: [
+              {
+                model: InvoiceItem,
+                attributes: ['id', 'price', 'quantity', 'subtotal'],
+                include: [{ model: Product, attributes: ['name', 'image', 'unit'], paranoid: false }],
+              },
+              { model: DeliveryOption, attributes: ['name', 'cost'], paranoid: false },
+            ],
+            limit,
+            offset: limit * currentPage - limit,
+            distinct: true,
+            order: [sort.split(',')],
+          });
+
+          res.status(200).send({
+            rows,
+            count,
+            maxPage: Math.ceil(count / limit) || 1,
+            expiredInvoices: `We have cancelled ${expiredTime.length} transaction(s) due to expiry date`,
+          });
+        } else if (expiredProduct.length) {
+          const expiredProuctId = expiredProduct.map((item) => item.id);
+
+          await InvoiceHeader.destroy({ where: { id: expiredProuctId } });
+
+          const { rows, count } = await InvoiceHeader.findAndCountAll({
+            where: { userId: req.user.id, status: 'awaiting' },
+            attributes: [
+              'id',
+              'createdAt',
+              [
+                sequelize.literal(`(SELECT SUM(price * quantity) FROM invoiceitems WHERE invoiceitems.invoiceheaderId = invoiceheader.id)`),
+                'total',
+              ],
+            ],
+            include: [
+              {
+                model: InvoiceItem,
+                attributes: ['id', 'price', 'quantity', 'subtotal'],
+                include: [{ model: Product, attributes: ['name', 'image', 'unit'], paranoid: false }],
+              },
+              { model: DeliveryOption, attributes: ['name', 'cost'], paranoid: false },
+            ],
+            limit,
+            offset: limit * currentPage - limit,
+            distinct: true,
+            order: [sort.split(',')],
+          });
+
+          res.status(200).send({
+            rows,
+            count,
+            maxPage: Math.ceil(count / limit) || 1,
+            expiredInvoices: `We have cancelled ${expiredProduct.length} transaction(s) due to product unavailability`,
+          });
+        }
       } else {
         res.status(200).send({ rows, count, maxPage: Math.ceil(count / limit) || 1 });
       }

@@ -74,6 +74,8 @@ module.exports = {
 
       if (!userData) {
         return res.send({ invalid: true });
+      } else if (!userData.active) {
+        return res.send({ conflict: true, message: 'This account is currently inactive!' });
       } else {
         const cartTotal = await Cart.count({ where: { userId: userData.id } });
 

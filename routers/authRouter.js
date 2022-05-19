@@ -25,15 +25,19 @@ router.get(
 
 router.get('/login/success', async (req, res) => {
   if (req.user) {
-    const token = createToken({
-      id: req.user.id,
-      name: req.user.name,
-      email: req.user.email,
-    });
+    if (!req.user.active) {
+      res.send({ conflict: true, message: 'This account is currently inactive!' });
+    } else {
+      const token = createToken({
+        id: req.user.id,
+        name: req.user.name,
+        email: req.user.email,
+      });
 
-    const cartTotal = await Cart.count({ where: { userId : req.user.id }})
+      const cartTotal = await Cart.count({ where: { userId: req.user.id } });
 
-    res.status(200).send({ user: req.user, token, cartTotal });
+      res.status(200).send({ user: req.user, token, cartTotal });
+    }
   } else {
     res.send({ ignore: true });
   }
