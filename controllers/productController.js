@@ -244,6 +244,11 @@ module.exports = {
       let productData = JSON.parse(req.body.productData);
       let oldData = await Product.findByPk(req.params.id);
 
+          // stock concept
+          // repack sisa = remaining stock / new volume
+          //1. stock = new stock + repack sisa
+          // 2. stock in unit = stock x volume
+
       if (productData.volume !== oldData.volume && productData.stock !== oldData.stock) {
         productData = {
           ...productData,
