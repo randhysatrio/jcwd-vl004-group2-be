@@ -17,7 +17,7 @@ module.exports = {
   getTransaction: async (req, res) => {
     try {
       // sort and { sort } is different
-      const { sort, startDate, endDate, status, offset, limit } = req.body;
+      const { sort, startDate, endDate, status, limit, offset } = req.body;
 
       const { keyword } = req.query;
 
@@ -30,7 +30,7 @@ module.exports = {
       if (status) {
         query.where = { ...query.where, status: status };
       }
-      
+
       if (startDate || endDate) {
         query.where = {
           ...query.where,
@@ -192,7 +192,11 @@ module.exports = {
           userId: transaction.userId,
         });
       } else {
-        res.send({ conflict: true, message: 'This invoice status is already updated!', status: transaction.status });
+        res.send({
+          conflict: true,
+          message: "This invoice status is already updated!",
+          status: transaction.status,
+        });
       }
     } catch (error) {
       res.status(500).send(error);
@@ -206,7 +210,7 @@ module.exports = {
         include: [
           {
             model: InvoiceItem,
-            attributes: ['price', 'quantity', 'subtotal'],
+            attributes: ["price", "quantity", "subtotal"],
             include: [
               {
                 model: Product,
@@ -215,15 +219,21 @@ module.exports = {
               },
             ],
           },
-          { model: User, attributes: ['name', 'email', 'phone_number'] },
+          { model: User, attributes: ["name", "email", "phone_number"] },
           {
             model: Address,
-            attributes: ['address', 'city', 'province', 'country', 'postalcode'],
+            attributes: [
+              "address",
+              "city",
+              "province",
+              "country",
+              "postalcode",
+            ],
             paranoid: false,
           },
           {
             model: DeliveryOption,
-            attributes: ['name', 'cost'],
+            attributes: ["name", "cost"],
             paranoid: false,
           },
         ],
@@ -241,7 +251,7 @@ module.exports = {
 
         await Message.create({
           userId: transaction.userId,
-          to: 'user',
+          to: "user",
           adminId: id,
           header: `Payment Rejected for Invoice #${transaction.id}`,
           content: `Dear, ${transaction.user.name}|We're sorry to inform you that we have rejected the payment you've made for Invoice #${transaction.id}.|Furthermore, in line with our applied terms and conditions, you will received your money back in 1x24h time. If you have any questions just send us an email at admin@heizenbergco.com|Regards,`,
@@ -251,7 +261,7 @@ module.exports = {
 
         setTimeout(async () => {
           await transporter.sendMail({
-            from: 'HeizenbergAdmin <admin@heizenbergco.com>',
+            from: "HeizenbergAdmin <admin@heizenbergco.com>",
             to: `${transaction.user.email}`,
             subject: `Payment Rejected for Invoice #${transaction.id}`,
             html: `
@@ -264,9 +274,11 @@ module.exports = {
             <p><b>The Heizen Berg Co. Admin Team</b></p>`,
             attachments: [
               {
-                filename: `${transaction.user.name.replace(' ', '')}_invoice_${transaction.id}.pdf`,
+                filename: `${transaction.user.name.replace(" ", "")}_invoice_${
+                  transaction.id
+                }.pdf`,
                 path: path.resolve(invoicePdfPath),
-                contentType: 'application/pdf',
+                contentType: "application/pdf",
               },
             ],
           });
@@ -281,7 +293,11 @@ module.exports = {
           userId: transaction.userId,
         });
       } else {
-        res.send({ conflict: true, message: 'This invoice status is already updated!', status: transaction.status });
+        res.send({
+          conflict: true,
+          message: "This invoice status is already updated!",
+          status: transaction.status,
+        });
       }
     } catch (error) {
       res.status(500).send(error);
