@@ -254,9 +254,9 @@ module.exports = {
             expiredInvoices: `We have cancelled ${expiredTime.length} transaction(s) due to expiry date`,
           });
         } else if (expiredProduct.length) {
-          const expiredProuctId = expiredProduct.map((item) => item.id);
+          const expiredProductId = expiredProduct.map((item) => item.id);
 
-          await InvoiceHeader.destroy({ where: { id: expiredProuctId } });
+          await InvoiceHeader.destroy({ where: { id: expiredProductId } });
 
           const { rows, count } = await InvoiceHeader.findAndCountAll({
             where: { userId: req.user.id, status: 'awaiting' },

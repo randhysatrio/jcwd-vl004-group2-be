@@ -38,6 +38,10 @@ const Admin = sequelize.define('admin', {
   address: {
     type: DataTypes.STRING(1024),
   },
+  is_super: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+  },
 });
 
 Admin.hasMany(Message);

@@ -129,7 +129,7 @@ module.exports = {
         html: `
         <p>Dear ${userData.name},</p>
         <br/>
-        <p>Here are the link you've requested to change your account password:</p>
+        <p>Here is the link you've requested to change your account password:</p>
         <a href="${process.env.CLIENT_URL}/changepassword/${token}">Change your password</a>
         <p>On a side note, this link will only be valid for <b>30 minutes</b> starting from the time this email is sent to you</p>
         <br/>
