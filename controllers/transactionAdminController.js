@@ -17,8 +17,7 @@ module.exports = {
   getTransaction: async (req, res) => {
     try {
       // sort and { sort } is different
-      const { sort, startDate, endDate, status, page, limit } = req.body;
-      const offset = (page - 1) * limit;
+      const { sort, startDate, endDate, status, offset, limit } = req.body;
 
       const { keyword } = req.query;
 
