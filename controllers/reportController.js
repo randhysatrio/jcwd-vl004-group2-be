@@ -3,6 +3,7 @@ const Product = require('../models/Product');
 const sequelize = require('../configs/sequelize');
 const { Op } = require('sequelize');
 const { startOfDay, endOfDay } = require('date-fns');
+const InvoiceHeader = require('../models/InvoiceHeader');
 
 module.exports = {
   getReport: async (req, res) => {
@@ -59,8 +60,12 @@ module.exports = {
             [Op.gt]: startOfDay(new Date(startDate)),
           },
           '$product.name$': { [Op.like]: `%${search}%` },
+          '$invoiceheader.status$': 'approved',
         },
-        include: [{ model: Product, attributes: [] }],
+        include: [
+          { model: Product, attributes: [] },
+          { model: InvoiceHeader, attributes: [] },
+        ],
         raw: true,
         group: ['Product.name'],
       });
@@ -128,8 +133,12 @@ module.exports = {
             [Op.gt]: startOfDay(new Date(startDate)),
           },
           '$product.name$': { [Op.like]: `%${search}%` },
+          '$invoiceheader.status$': 'approved',
         },
-        include: [{ model: Product, attributes: [] }],
+        include: [
+          { model: Product, attributes: [] },
+          { model: InvoiceHeader, attributes: [] },
+        ],
         raw: true,
         group: ['Product.name'],
         offset: start,

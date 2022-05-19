@@ -53,8 +53,7 @@ module.exports = {
   },
   query: async (req, res) => {
     try {
-      const { activePage, active, limit } = req.body;
-      const offset = (activePage - 1) * limit;
+      const { active, limit, offset } = req.body;
 
       const query = {
         limit,
