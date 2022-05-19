@@ -1,12 +1,14 @@
-const { Op } = require('sequelize');
-const Crypto = require('crypto');
+const { Op } = require("sequelize");
+const Crypto = require("crypto");
 
-const Admin = require('../models/Admin');
+const Admin = require("../models/Admin");
 
 module.exports = {
   getAdmins: async (req, res) => {
     try {
-      const { limit, currentPage, sort, keyword } = req.body;
+      const { limit, currentPage, sort } = req.body;
+
+      const { keyword } = req.query;
 
       const query = {
         limit,
@@ -14,7 +16,7 @@ module.exports = {
       };
 
       if (sort) {
-        query.order = [sort.split(',')];
+        query.order = [sort.split(",")];
       }
 
       if (keyword) {
@@ -48,15 +50,19 @@ module.exports = {
     try {
       const { data, limit } = req.body;
 
-      data.password = Crypto.createHmac('sha1', 'hash123').update(data.password).digest('hex');
+      data.password = Crypto.createHmac("sha1", "hash123")
+        .update(data.password)
+        .digest("hex");
 
-      const usernameCheck = await Admin.findOne({ where: { username: data.username } });
+      const usernameCheck = await Admin.findOne({
+        where: { username: data.username },
+      });
       const emailCheck = await Admin.findOne({ where: { email: data.email } });
 
       if (usernameCheck) {
-        res.send({ conflict: 'This username has already been used!' });
+        res.send({ conflict: "This username has already been used!" });
       } else if (emailCheck) {
-        res.send({ conflict: 'This email has already been registered!' });
+        res.send({ conflict: "This email has already been registered!" });
       } else {
         await Admin.create(data);
 
@@ -66,7 +72,14 @@ module.exports = {
 
         const totalAdmins = await Admin.count();
 
-        res.status(201).send({ message: 'Admin account created successfully!', rows, maxPage, totalAdmins });
+        res
+          .status(201)
+          .send({
+            message: "Admin account created successfully!",
+            rows,
+            maxPage,
+            totalAdmins,
+          });
       }
     } catch (err) {
       res.status(500).send(err);
@@ -84,7 +97,14 @@ module.exports = {
 
       const totalAdmins = await Admin.count();
 
-      res.status(200).send({ message: 'Admin account deleted successfully!', rows, maxPage, totalAdmins });
+      res
+        .status(200)
+        .send({
+          message: "Admin account deleted successfully!",
+          rows,
+          maxPage,
+          totalAdmins,
+        });
     } catch (err) {
       res.status(500).send(err);
     }
