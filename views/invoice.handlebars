@@ -1,0 +1,159 @@
+<style type='text/css'>
+  * { padding: 0; margin: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu,
+  Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; } body { display: flex; justify-content: center; align-items: center; }
+  .invoice__main { width: 800px; min-height: 100vh; border-left: 1px solid gainsboro; border-right: 1px solid gainsboro; padding: 0 15px;
+  display: flex; flex-direction: column; align-items: center; position: relative; z-index: 10; } .invoice__background_approved { position:
+  absolute; z-index: -1; font-size: 100px; color: rgba(0, 0, 0, 0.1); font-weight: bold; top: 170px; transform: rotate(340deg); }
+  .invoice__header { width: 100%; height: 100px; padding: 7px 0; } .invoice__background_rejected { position: absolute; z-index: -1;
+  font-size: 100px; color: rgba(197, 71, 71, 0.382); font-weight: bold; top: 170px; transform: rotate(340deg); } .invoice__header { width:
+  100%; height: 100px; padding: 7px 0; } .invoice__wrapper { height: 100%; width: 100%; display: flex; justify-content: space-between;
+  align-items: center; padding: 0 25px; background: rgb(98, 98, 241); background: linear-gradient(90deg, rgba(98, 98, 241, 1) 0%, rgba(132,
+  207, 241, 1) 100%); border-radius: 5px; } .invoice__logo { font-size: 25px; font-weight: bold; color: white; } .invoice__header_id {
+  font-size: 25px; font-weight: bold; color: white; } .invoice__content { width: 100%; height: max-content; display: flex; flex-direction:
+  column; align-items: center; } .invoice__info_wrapper { width: 100%; height: 100%; padding: 10px 0; display: flex; } .invoice__info_user {
+  width: 40%; height: 100%; display: flex; flex-direction: column; padding: 10px 0; padding-left: 30px; } .text__info_title { font-size:
+  15px; color: gray; font-weight: 600; } .text__user_name { font-size: 25px; font-weight: bold; margin-bottom: 4px; overflow: hidden;
+  text-overflow: ellipsis; white-space: nowrap; } .text__phone { font-size: 18px; font-weight: 600; margin-bottom: 4px; }
+  .invoice__info_user_wrapper { display: flex; align-items: center; font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+  .text__user_property { font-weight: 600; width: 75px; color: dimgrey; } .invoice__info_address { width: 60%; height: 100%; display: flex;
+  flex-direction: column; gap: 4px; padding: 10px 0; } .text__address_medium { font-weight: 600; overflow: hidden; text-overflow: ellipsis;
+  white-space: nowrap; } .text__address_bold { font-weight: bold; text-transform: uppercase; } .invoice__item_wrapper { width: 98%; display:
+  flex; flex-direction: column; border-bottom: 1px solid gainsboro; } .invoice__item_header { width: 100%; font-size: 17px; line-height:
+  30px; font-weight: bold; border-bottom: 1px solid gray; } .invoice__item_properties { width: 100%; height: 35px; display: flex; font-size:
+  15px; font-weight: 700; } .invoice__item_prop_img { width: 15%; height: 100%; display: flex; justify-content: center; align-items: center;
+  } .invoice__item_prop_name { width: 40%; height: 100%; display: flex; align-items: center; } .invoice__item_prop_price { width: 15%;
+  height: 100%; display: flex; justify-content: center; align-items: center; } .invoice__item_prop_quantity { width: 11%; height: 100%;
+  display: flex; justify-content: center; align-items: center; } .invoice__item_prop_subtotal { width: 19%; height: 100%; display: flex;
+  justify-content: center; align-items: center; } .invoice__items_wrapper { width: 100%; display: flex; flex-direction: column; gap: 8px; }
+  .invoice__item { width: 100%; height: 75px; display: flex; font-size: 17px; font-weight: 500; margin-bottom: 5px; } .invoice__item_image {
+  width: 15%; height: 100%; display: flex; justify-content: center; align-items: center; } .invoice__item_img { height: 60px; width: 60px;
+  border-radius: 5px; display: flex; justify-content: center; align-items: center; border: 1px solid gainsboro; background-color: white;
+  overflow: hidden; } .invoice__item_img img { height: 60px; object-fit: contain; } .invoice__item_name { width: 40%; height: 100%; display:
+  flex; align-items: center; } .invoice__item_name > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .invoice__item_price { width: 15%; height: 100%; display: flex; justify-content: center; align-items: center; } .invoice__item_quantity {
+  width: 11%; height: 100%; display: flex; justify-content: center; align-items: center; } .invoice__item_subtotal { width: 19%; height:
+  100%; display: flex; justify-content: center; align-items: center; } .invoice__footer { width: 100%; height: max-content; padding: 15px
+  10px; } .invoice__footer_wrapper { width: 100%; height: max-content; display: flex; justify-content: end; } .invoice__footer_notes {
+  width: 50%; min-height: 100px; border-radius: 10px; padding: 5px 10px; display: flex; flex-direction: column; border: 1px dashed gray;
+  margin-right: 10px; } .invoice__footer_notes-header { font-size: 15px; font-weight: bold; } .invoice__footer_notes-content { font-size:
+  15px;} .invoice__footer_summary { width: 35%; padding: 0 10px; display: flex; flex-direction: column; align-items: end; }
+  .invoice__footer_summary-header { width: 100%; font-size: 15px; font-weight: bold; border-bottom: 1px solid black; text-align: end;
+  margin-bottom: 5px; } .invoice__footer_summary_field_wrapper { width: 100%; display: flex; justify-content: space-between; align-items:
+  center; margin-bottom: 5px; } .invoice__footer_summary_field-prop { font-weight: bold; } .invoice__footer_summary_field-value {
+  font-weight: 600; } .invoice__footer_summary_field_wrapper_total { width: 100%; display: flex; justify-content: space-between;
+  align-items: center; font-size: 20px; border: 1px solid black; border-radius: 5px; padding: 5px; } .invoice__footer_bottom { width: 100%;
+  display: flex; justify-content: center; font-weight: 500; padding: 2px 0; border-top: 1px solid gainsboro; }
+</style>
+
+<div class='invoice__main'>
+  {{#if (approved data.status)}}
+    <span class='invoice__background_approved'>Approved</span>
+  {{else}}
+    {{#if (rejected data.status)}}
+      <span class='invoice__background_rejected'>Rejected</span>
+    {{else}}
+    {{/if}}
+  {{/if}}
+  <div class='invoice__header'>
+    <div class='invoice__wrapper'>
+      <span class='invoice__logo'>Heizen Berg Co.</span>
+      <span class='invoice__header_id'>Invoice #{{data.id}}</span>
+    </div>
+  </div>
+  <div class='invoice__content'>
+    <div class='invoice__info_wrapper'>
+      <div class='invoice__info_user'>
+        <span class='text__info_title'>Recipient:</span>
+        <span class='text__user_name'>{{data.user.name}}</span>
+        <span class='text__phone'>{{data.user.phone_number}}</span>
+        <div class='invoice__info_user_wrapper'>
+          <span class='text__user_property'>Date:</span>
+          <span>{{date data.createdAt}}</span>
+        </div>
+        <div class='invoice__info_user_wrapper'>
+          <span class='text__user_property'>Courier:</span>
+          <span>{{data.deliveryoption.name}}</span>
+        </div>
+      </div>
+      <div class='invoice__info_address'>
+        <span class='text__info_title'>Shipping Address:</span>
+        <span class='text__address_medium'>{{data.address.address}}</span>
+        <span class='text__address_medium'>{{data.address.city}}</span>
+        <span class='text__address_bold'>{{data.address.province}}</span>
+        <span class='text__address_bold'>{{data.address.country}}</span>
+        <span class='text__address_medium'>{{data.address.postalcode}}</span>
+      </div>
+    </div>
+    <div class='invoice__item_wrapper'>
+      <div class='invoice__item_header'>
+        <span>Product Info:</span>
+      </div>
+      <div class='invoice__item_properties'>
+        <div class='invoice__item_prop_img'>
+          <span>Image:</span>
+        </div>
+        <div class='invoice__item_prop_name'>
+          <span>Name:</span>
+        </div>
+        <div class='invoice__item_prop_price'>
+          <span>Price:</span>
+        </div>
+        <div class='invoice__item_prop_quantity'>
+          <span>Quantity:</span>
+        </div>
+        <div class='invoice__item_prop_subtotal'>
+          <span>Subtotal:</span>
+        </div>
+      </div>
+      <div class='invoice__items_wrapper'>
+        {{#each data.invoiceitems}}
+          <div class='invoice__item'>
+            <div class='invoice__item_image'>
+              <div class='invoice__item_img'>
+                <img src={{imageLink product.image}} />
+              </div>
+            </div>
+            <div class='invoice__item_name'>
+              <span>{{product.name}}</span>
+            </div>
+            <div class='invoice__item_price'>
+              <span>Rp. {{currency price}}</span>
+            </div>
+            <div class='invoice__item_quantity'>
+              <span>{{currency quantity}} {{product.unit}}</span>
+            </div>
+            <div class='invoice__item_subtotal'>
+              <span>Rp. {{currency subtotal}}</span>
+            </div>
+          </div>
+        {{/each}}
+      </div>
+    </div>
+  </div>
+  <div class='invoice__footer'>
+    <div class='invoice__footer_wrapper'>
+      <div class='invoice__footer_notes'>
+        <span class='invoice__footer_notes-header'>Notes:</span>
+        <span class='invoice__footer_notes-content'>{{data.notes}}</span>
+      </div>
+      <div class='invoice__footer_summary'>
+        <span class='invoice__footer_summary-header'>Order Summary</span>
+        <div class='invoice__footer_summary_field_wrapper'>
+          <span class='invoice__footer_summary_field-prop'>Total:</span>
+          <span class='invoice__footer_summary_field-value'>Rp. {{currency data.total}}</span>
+        </div>
+        <div class='invoice__footer_summary_field_wrapper'>
+          <span class='invoice__footer_summary_field-prop'>Delivery:</span>
+          <span class='invoice__footer_summary_field-value'>Rp. {{currency data.deliveryoption.cost}}</span>
+        </div>
+        <div class='invoice__footer_summary_field_wrapper_total'>
+          <span class='invoice__footer_summary_field-prop'>Gr. Total:</span>
+          <span class='invoice__footer_summary_field-value'>Rp. {{grandTotal data.total data.deliveryoption.cost}}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class='invoice__footer_bottom'>
+    <span>© Heizen Berg Co., 2022</span>
+  </div>
+</div>
