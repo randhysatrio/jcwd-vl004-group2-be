@@ -78,6 +78,17 @@ module.exports = {
         };
       }
 
+      if (search) {
+        query.where = {
+          ...query.where,
+          [Op.or]: {
+            name: { [Op.substring]: search },
+            appearance: { [Op.substring]: search },
+            "$category.name$": { [Op.substring]: search },
+          },
+        };
+      }
+
       if (appearance) {
         query.where = { ...query.where, appearance };
       }
@@ -262,7 +273,6 @@ module.exports = {
       res.status(500).send(error);
     }
   },
-
   delete: async (req, res) => {
     try {
       await Product.destroy({ where: { id: req.params.id } });
