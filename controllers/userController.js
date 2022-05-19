@@ -53,7 +53,7 @@ module.exports = {
   },
   query: async (req, res) => {
     try {
-      const { name, active, limit } = req.body;
+      const { active, limit, offset } = req.body;
 
       const query = {
         limit,
@@ -67,12 +67,13 @@ module.exports = {
           [Op.or]: {
             name: { [Op.substring]: keyword },
             email: { [Op.substring]: keyword },
+            phone_number: { [Op.substring]: keyword },
           },
         };
       }
 
-      if (name) {
-        query.where = { ...query.where, name: { [Op.substring]: name } };
+      if (offset) {
+        query.offset = offset;
       }
 
       if (active) {
