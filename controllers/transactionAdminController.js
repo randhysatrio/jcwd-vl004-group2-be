@@ -1,17 +1,17 @@
-const { Op } = require("sequelize");
-const InvoiceHeader = require("../models/InvoiceHeader");
-const InvoiceItem = require("../models/InvoiceItem");
-const User = require("../models/User");
-const Address = require("../models/Address");
-const Product = require("../models/Product");
-const DeliveryOption = require("../models/DeliveryOption");
-const PaymentProof = require("../models/PaymentProof");
-const Message = require("../models/Message");
+const { Op } = require('sequelize');
+const InvoiceHeader = require('../models/InvoiceHeader');
+const InvoiceItem = require('../models/InvoiceItem');
+const User = require('../models/User');
+const Address = require('../models/Address');
+const Product = require('../models/Product');
+const DeliveryOption = require('../models/DeliveryOption');
+const PaymentProof = require('../models/PaymentProof');
+const Message = require('../models/Message');
 
-const { startOfDay, endOfDay } = require("date-fns");
-const transporter = require("../configs/nodemailer");
-const { generatePdf } = require("../configs/puppeteer");
-const path = require("path");
+const { startOfDay, endOfDay } = require('date-fns');
+const transporter = require('../configs/nodemailer');
+const { generatePdf } = require('../configs/puppeteer');
+const path = require('path');
 
 module.exports = {
   getTransaction: async (req, res) => {
@@ -21,10 +21,10 @@ module.exports = {
 
       const { keyword } = req.query;
 
-      const query = { order: [["createdAt", "DESC"]], limit, offset };
+      const query = { order: [['createdAt', 'DESC']], limit, offset };
 
       if (sort) {
-        query.order = [sort.split(",")];
+        query.order = [sort.split(',')];
       }
 
       if (status) {
@@ -48,9 +48,9 @@ module.exports = {
           ...query.where,
           [Op.or]: {
             notes: { [Op.substring]: keyword },
-            "$user.name$": { [Op.substring]: keyword },
-            "$address.address$": { [Op.substring]: keyword },
-            "$deliveryoption.name$": { [Op.substring]: keyword },
+            '$user.name$': { [Op.substring]: keyword },
+            '$address.address$': { [Op.substring]: keyword },
+            '$deliveryoption.name$': { [Op.substring]: keyword },
           },
         };
       }
@@ -58,33 +58,33 @@ module.exports = {
       const { rows, count } = await InvoiceHeader.findAndCountAll({
         ...query,
         include: [
-          { model: User, attributes: ["name"], required: true },
+          { model: User, attributes: ['name'], required: true },
           {
             model: Address,
             attributes: [
-              "address",
-              "city",
-              "province",
-              "country",
-              "postalcode",
+              'address',
+              'city',
+              'province',
+              'country',
+              'postalcode',
             ],
             required: true,
             paranoid: false,
           },
           {
             model: DeliveryOption,
-            attributes: ["name"],
+            attributes: ['name'],
             required: true,
             paranoid: false,
           },
           { model: PaymentProof },
           {
             model: InvoiceItem,
-            attributes: ["price", "quantity", "id"],
+            attributes: ['price', 'quantity', 'id'],
             include: [
               {
                 model: Product,
-                attributes: ["name", "image"],
+                attributes: ['name', 'image'],
                 paranoid: false,
               },
             ],
@@ -110,39 +110,39 @@ module.exports = {
         include: [
           {
             model: InvoiceItem,
-            attributes: ["price", "quantity", "subtotal"],
+            attributes: ['price', 'quantity', 'subtotal'],
             include: [
               {
                 model: Product,
-                attributes: ["name", "image", "unit"],
+                attributes: ['name', 'image', 'unit'],
                 paranoid: false,
               },
             ],
           },
-          { model: User, attributes: ["name", "email", "phone_number"] },
+          { model: User, attributes: ['name', 'email', 'phone_number'] },
           {
             model: Address,
             attributes: [
-              "address",
-              "city",
-              "province",
-              "country",
-              "postalcode",
+              'address',
+              'city',
+              'province',
+              'country',
+              'postalcode',
             ],
             paranoid: false,
           },
           {
             model: DeliveryOption,
-            attributes: ["name", "cost"],
+            attributes: ['name', 'cost'],
             paranoid: false,
           },
         ],
       });
 
-      if (transaction.status === "pending") {
+      if (transaction.status === 'pending') {
         await InvoiceHeader.update(
           {
-            status: "approved",
+            status: 'approved',
           },
           {
             where: { id: req.params.id },
@@ -151,7 +151,7 @@ module.exports = {
 
         await Message.create({
           userId: transaction.userId,
-          to: "user",
+          to: 'user',
           adminId: id,
           header: `Payment Approved for Invoice #${transaction.id}`,
           content: `Hello, ${transaction.user.name}!|We have approved the payment you've made for Invoice #${transaction.id}!|Please wait while we packed your order and shipped it to you immediately!|Thank you for shopping with us and we are looking forward for your next order :)|Regards,`,
@@ -165,7 +165,7 @@ module.exports = {
 
         setTimeout(async () => {
           await transporter.sendMail({
-            from: "HeizenbergAdmin <admin@heizenbergco.com>",
+            from: 'HeizenbergAdmin <admin@heizenbergco.com>',
             to: `${transaction.user.email}`,
             subject: `Payment Approved for Invoice #${transaction.id}`,
             html: `
@@ -177,24 +177,24 @@ module.exports = {
             <p><b>The Heizen Berg Co. Admin Team</b></p>`,
             attachments: [
               {
-                filename: `${transaction.user.name.replace(" ", "")}_invoice_${
+                filename: `${transaction.user.name.replace(' ', '')}_invoice_${
                   transaction.id
                 }.pdf`,
                 path: path.resolve(invoicePdfPath),
-                contentType: "application/pdf",
+                contentType: 'application/pdf',
               },
             ],
           });
         }, 1000);
 
         res.status(200).send({
-          message: "Invoice updated successfully!",
+          message: 'Invoice updated successfully!',
           userId: transaction.userId,
         });
       } else {
         res.send({
           conflict: true,
-          message: "This invoice status is already updated!",
+          message: 'This invoice status is already updated!',
           status: transaction.status,
         });
       }
@@ -210,39 +210,39 @@ module.exports = {
         include: [
           {
             model: InvoiceItem,
-            attributes: ["price", "quantity", "subtotal"],
+            attributes: ['price', 'quantity', 'subtotal'],
             include: [
               {
                 model: Product,
-                attributes: ["name", "image", "unit"],
+                attributes: ['name', 'image', 'unit'],
                 paranoid: false,
               },
             ],
           },
-          { model: User, attributes: ["name", "email", "phone_number"] },
+          { model: User, attributes: ['name', 'email', 'phone_number'] },
           {
             model: Address,
             attributes: [
-              "address",
-              "city",
-              "province",
-              "country",
-              "postalcode",
+              'address',
+              'city',
+              'province',
+              'country',
+              'postalcode',
             ],
             paranoid: false,
           },
           {
             model: DeliveryOption,
-            attributes: ["name", "cost"],
+            attributes: ['name', 'cost'],
             paranoid: false,
           },
         ],
       });
 
-      if (transaction.status === "pending") {
+      if (transaction.status === 'pending') {
         await InvoiceHeader.update(
           {
-            status: "rejected",
+            status: 'rejected',
           },
           {
             where: { id: req.params.id },
@@ -251,7 +251,7 @@ module.exports = {
 
         await Message.create({
           userId: transaction.userId,
-          to: "user",
+          to: 'user',
           adminId: id,
           header: `Payment Rejected for Invoice #${transaction.id}`,
           content: `Dear, ${transaction.user.name}|We're sorry to inform you that we have rejected the payment you've made for Invoice #${transaction.id}.|Furthermore, in line with our applied terms and conditions, you will received your money back in 1x24h time. If you have any questions just send us an email at admin@heizenbergco.com|Regards,`,
@@ -261,7 +261,7 @@ module.exports = {
 
         setTimeout(async () => {
           await transporter.sendMail({
-            from: "HeizenbergAdmin <admin@heizenbergco.com>",
+            from: 'HeizenbergAdmin <admin@heizenbergco.com>',
             to: `${transaction.user.email}`,
             subject: `Payment Rejected for Invoice #${transaction.id}`,
             html: `
@@ -274,11 +274,11 @@ module.exports = {
             <p><b>The Heizen Berg Co. Admin Team</b></p>`,
             attachments: [
               {
-                filename: `${transaction.user.name.replace(" ", "")}_invoice_${
+                filename: `${transaction.user.name.replace(' ', '')}_invoice_${
                   transaction.id
                 }.pdf`,
                 path: path.resolve(invoicePdfPath),
-                contentType: "application/pdf",
+                contentType: 'application/pdf',
               },
             ],
           });
@@ -289,13 +289,13 @@ module.exports = {
         await transaction.save();
 
         res.status(200).send({
-          message: "Invoice updated successfully!",
+          message: 'Invoice updated successfully!',
           userId: transaction.userId,
         });
       } else {
         res.send({
           conflict: true,
-          message: "This invoice status is already updated!",
+          message: 'This invoice status is already updated!',
           status: transaction.status,
         });
       }
