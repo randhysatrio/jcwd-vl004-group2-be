@@ -1,7 +1,7 @@
-const { Op } = require("sequelize");
-const Crypto = require("crypto");
+const { Op } = require('sequelize');
+const Crypto = require('crypto');
 
-const Admin = require("../models/Admin");
+const Admin = require('../models/Admin');
 
 module.exports = {
   getAdmins: async (req, res) => {
@@ -16,7 +16,7 @@ module.exports = {
       };
 
       if (sort) {
-        query.order = [sort.split(",")];
+        query.order = [sort.split(',')];
       }
 
       if (keyword) {
@@ -39,7 +39,7 @@ module.exports = {
 
       const totalAdmins = await Admin.count();
 
-      const maxPage = Math.ceil(count / limit);
+      const maxPage = Math.ceil(count / limit) || 1;
 
       res.status(200).send({ rows, count, maxPage, totalAdmins });
     } catch (err) {
@@ -48,38 +48,33 @@ module.exports = {
   },
   createAdmin: async (req, res) => {
     try {
-      const { data, limit } = req.body;
+      const { data, limit, currentPage } = req.body;
 
-      data.password = Crypto.createHmac("sha1", "hash123")
-        .update(data.password)
-        .digest("hex");
+      data.password = Crypto.createHmac('sha1', 'hash123').update(data.password).digest('hex');
 
       const usernameCheck = await Admin.findOne({
         where: { username: data.username },
+        paranoid: false,
       });
-      const emailCheck = await Admin.findOne({ where: { email: data.email } });
+      const emailCheck = await Admin.findOne({ where: { email: data.email }, paranoid: false });
 
       if (usernameCheck) {
-        res.send({ conflict: "This username has already been used!" });
+        res.send({ conflict: 'This username has already been used!' });
       } else if (emailCheck) {
-        res.send({ conflict: "This email has already been registered!" });
+        res.send({ conflict: 'This email has already been registered!' });
       } else {
         await Admin.create(data);
 
-        const rows = await Admin.findAll({ limit });
+        const { rows, count } = await Admin.findAndCountAll({ limit, offset: currentPage * limit - limit });
 
-        const maxPage = Math.ceil(rows / limit);
+        const maxPage = Math.ceil(count / limit) || 1;
 
-        const totalAdmins = await Admin.count();
-
-        res
-          .status(201)
-          .send({
-            message: "Admin account created successfully!",
-            rows,
-            maxPage,
-            totalAdmins,
-          });
+        res.status(201).send({
+          message: 'Admin account created successfully!',
+          rows,
+          maxPage,
+          totalAdmins: count,
+        });
       }
     } catch (err) {
       res.status(500).send(err);
@@ -87,24 +82,26 @@ module.exports = {
   },
   deleteAdmin: async (req, res) => {
     try {
-      const { limit } = req.body;
+      const { limit, currentPage } = req.body;
+
+      const admin = await Admin.findByPk(req.params.id, { attributes: ['is_super'] });
+
+      if (admin.is_super) {
+        return res.send({ conflict: true, message: 'This account cannot be deleted!' });
+      }
 
       await Admin.destroy({ where: { id: req.params.id } });
 
-      const rows = await Admin.findAll({ limit });
+      const { rows, count } = await Admin.findAndCountAll({ limit, offset: currentPage * limit - limit });
 
-      const maxPage = Math.ceil(rows / limit);
+      const maxPage = Math.ceil(count / limit) || 1;
 
-      const totalAdmins = await Admin.count();
-
-      res
-        .status(200)
-        .send({
-          message: "Admin account deleted successfully!",
-          rows,
-          maxPage,
-          totalAdmins,
-        });
+      res.status(200).send({
+        message: 'Admin account deleted successfully!',
+        rows,
+        maxPage,
+        totalAdmins: count,
+      });
     } catch (err) {
       res.status(500).send(err);
     }

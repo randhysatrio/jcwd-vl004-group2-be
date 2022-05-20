@@ -2,47 +2,53 @@ const sequelize = require('../configs/sequelize');
 const { DataTypes } = require('sequelize');
 const Message = require('./Message');
 
-const Admin = sequelize.define('admin', {
-  name: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  email: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    unique: true,
-    validate: {
-      isEmail: {
-        msg: 'Invalid email',
+const Admin = sequelize.define(
+  'admin',
+  {
+    name: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    email: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      unique: true,
+      validate: {
+        isEmail: {
+          msg: 'Invalid email',
+        },
       },
     },
-  },
-  username: DataTypes.STRING,
-  password: {
-    type: DataTypes.STRING(1000),
-    allowNull: false,
-  },
-  profile_picture: {
-    type: DataTypes.STRING,
-    defaultValue: 'public/images/profile/default.png',
-  },
-  phone_number: {
-    type: DataTypes.STRING,
-    validate: {
-      is: {
-        args: /^(\+62|62)?[\s-]?0?8[1-9]{1}\d{1}[\s-]?\d{4}[\s-]?\d{2,5}$/,
-        msg: 'Please enter a valid phone number',
+    username: DataTypes.STRING,
+    password: {
+      type: DataTypes.STRING(1000),
+      allowNull: false,
+    },
+    profile_picture: {
+      type: DataTypes.STRING,
+      defaultValue: 'public/images/profile/default.png',
+    },
+    phone_number: {
+      type: DataTypes.STRING,
+      validate: {
+        is: {
+          args: /^(\+62|62)?[\s-]?0?8[1-9]{1}\d{1}[\s-]?\d{4}[\s-]?\d{2,5}$/,
+          msg: 'Please enter a valid phone number',
+        },
       },
     },
+    address: {
+      type: DataTypes.STRING(1024),
+    },
+    is_super: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+    },
   },
-  address: {
-    type: DataTypes.STRING(1024),
-  },
-  is_super: {
-    type: DataTypes.BOOLEAN,
-    defaultValue: false,
-  },
-});
+  {
+    paranoid: true,
+  }
+);
 
 Admin.hasMany(Message);
 Message.belongsTo(Admin);
