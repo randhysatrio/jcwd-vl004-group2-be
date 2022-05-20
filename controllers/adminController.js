@@ -37,11 +37,9 @@ module.exports = {
 
       const { rows, count } = await Admin.findAndCountAll(query);
 
-      const totalAdmins = await Admin.count();
-
       const maxPage = Math.ceil(count / limit) || 1;
 
-      res.status(200).send({ rows, count, maxPage, totalAdmins });
+      res.status(200).send({ rows, count, maxPage, totalAdmins: count });
     } catch (err) {
       res.status(500).send(err);
     }

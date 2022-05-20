@@ -73,7 +73,8 @@ app.use(passport.session());
 (async () => {
   try {
     await sequelize.authenticate();
-    // await sequelize.sync({ alter: true });
+    // await sequelize.sync({ alter: true }); guyss krn udh mau masuk tahap production, kita ga pake alter true lg. Kl emg mau update model itu silahkan yg di bawah ini di kasih {alter:true} aja, save, jalanin dan hapus lg. Soalnya kata docs sequelize kl masuk tahap production jgn ada alter true apalagi force: true (kita ga pernah pake force). Kl dia hanya sync gini, basically kl tablenya udh ada yaudah, kl ngga ada di buatin dulu. Tp bedanya dgn alter true adalah, kl alter: true, apabila di tablenya ada kolom baru, di buatin; sedangkan sync ngga. #FYI
+    await sequelize.sync();
     console.log('sequelize connection success!');
   } catch (error) {
     console.log(error);
