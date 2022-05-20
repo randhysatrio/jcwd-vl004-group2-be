@@ -5,8 +5,6 @@ module.exports = {
     try {
       const { limit, data, currentPage } = req.body;
 
-      console.log(data);
-
       const existingAddress = await Address.findOne({ where: { ...data, userId: req.user.id } });
 
       if (existingAddress) {
