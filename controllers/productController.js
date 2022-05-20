@@ -55,7 +55,7 @@ module.exports = {
         between,
         fromHome,
         fromAllProducts,
-        // categoryCheck,
+        sort,
       } = req.body;
 
       const query = {
@@ -95,17 +95,12 @@ module.exports = {
         };
       }
 
-      // if (categoryCheck) {
-      //   query.where = {
-      //     ...query.where,
-      //     [Op.or]: {
-      //       categoryId: categoryCheck ,
-      //     },
-      //   };
-      // }
-
       if (appearance) {
         query.where = { ...query.where, appearance };
+      }
+
+      if (sort) {
+        query.order = [sort.split(",")];
       }
 
       if (sort_price_sell) {
