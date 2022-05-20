@@ -5,6 +5,12 @@ module.exports = {
     try {
       const { limit, data, currentPage } = req.body;
 
+      const existingAddress = await Address.findOne({ where: { ...data, userId: req.user.id } });
+
+      if (existingAddress) {
+        return res.send({ conflict: 'This address already exist!' });
+      }
+
       if (data.is_default) {
         await Address.update({ is_default: false }, { where: { userId: req.user.id } });
       }

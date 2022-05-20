@@ -203,9 +203,10 @@ module.exports = {
         include: [
           {
             model: InvoiceItem,
-            attributes: ['id', 'price', 'quantity', 'subtotal'],
-            include: [{ model: Product, attributes: ['name', 'image', 'unit', 'deletedAt'], paranoid: false }],
+            attributes: ['id', 'price', 'quantity', 'subtotal', 'productId'],
+            include: [{ model: Product, attributes: ['name', 'image', 'unit', 'volume', 'deletedAt'], paranoid: false }],
           },
+          { model: DeliveryOption, attributes: ['name', 'cost'], paranoid: false },
         ],
         limit,
         offset: limit * currentPage - limit,
@@ -222,6 +223,15 @@ module.exports = {
         const expiredProduct = rows.filter((invoice) => invoice.invoiceitems.some((item) => item.product.deletedAt));
 
         if (expiredTime.length && expiredProduct.length) {
+          expiredInvoices.forEach((invoice) => {
+            invoice.invoiceitems.forEach(async (item) => {
+              await Product.increment(
+                { stock_in_unit: item.quantity, stock: Math.floor(item.quantity / item.product.volume) },
+                { where: { id: item.productId } }
+              );
+            });
+          });
+
           const expiredInvoiceId = expiredInvoices.map((item) => item.id);
 
           await InvoiceHeader.destroy({ where: { id: expiredInvoiceId } });
@@ -257,6 +267,15 @@ module.exports = {
             expiredInvoices: `We have cancelled ${expiredInvoiceId.length} transaction(s) due to possible conflicts`,
           });
         } else if (expiredTime.length) {
+          expiredTime.forEach((invoice) => {
+            invoice.invoiceitems.forEach(async (item) => {
+              await Product.increment(
+                { stock_in_unit: item.quantity, stock: Math.floor(item.quantity / item.product.volume) },
+                { where: { id: item.productId } }
+              );
+            });
+          });
+
           const expiredTimeId = expiredTime.map((item) => item.id);
 
           await InvoiceHeader.destroy({ where: { id: expiredTimeId } });
@@ -292,6 +311,15 @@ module.exports = {
             expiredInvoices: `We have cancelled ${expiredTime.length} transaction(s) due to expiry date`,
           });
         } else if (expiredProduct.length) {
+          expiredProduct.forEach((invoice) => {
+            invoice.invoiceitems.forEach(async (item) => {
+              await Product.increment(
+                { stock_in_unit: item.quantity, stock: Math.floor(item.quantity / item.product.volume) },
+                { where: { id: item.productId } }
+              );
+            });
+          });
+
           const expiredProductId = expiredProduct.map((item) => item.id);
 
           await InvoiceHeader.destroy({ where: { id: expiredProductId } });
