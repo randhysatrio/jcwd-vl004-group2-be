@@ -24,9 +24,7 @@ module.exports = {
       let { email, password } = req.body;
 
       // Hashing
-      password = Crypto.createHmac('sha1', 'hash123')
-        .update(password)
-        .digest('hex');
+      password = Crypto.createHmac('sha1', 'hash123').update(password).digest('hex');
 
       // Check email & password
       const login = await Admin.findOne({
@@ -35,24 +33,28 @@ module.exports = {
           password,
         },
         raw: true,
+        paranoid: false,
       });
 
       if (login) {
-        // create token
-        let { id, name, email, username, password } = login;
-        let token = createToken({
-          id,
-          name,
-          email,
-          username,
-          password,
-        });
+        if (login.deletedAt) {
+          return res.send({ conflict: true, message: 'This account is already deactivated!' });
+        } else {
+          let { id, name, email, username, password } = login;
+          let token = createToken({
+            id,
+            name,
+            email,
+            username,
+            password,
+          });
 
-        delete login.password;
-        
-        res
-          .status(200)
-          .send({ data: login, token: token, message: 'Login successed' });
+          delete login.password;
+
+          res.status(200).send({ data: login, token: token, message: 'Login successed' });
+        }
+
+        // create token
       } else {
         throw new Error('Wrong email or password');
       }
@@ -109,9 +111,7 @@ module.exports = {
       let { password } = req.body;
 
       // Hashing
-      password = Crypto.createHmac('sha1', 'hash123')
-        .update(password)
-        .digest('hex');
+      password = Crypto.createHmac('sha1', 'hash123').update(password).digest('hex');
 
       // Update password
       await Admin.update(

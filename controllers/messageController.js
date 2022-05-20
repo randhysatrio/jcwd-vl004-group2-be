@@ -26,7 +26,7 @@ module.exports = {
         limit,
         offset: currentPage * limit - limit,
         order: [['createdAt', 'desc']],
-        include: Admin,
+        include: [{ model: Admin, attributes: ['name'], paranoid: false }],
       });
 
       res.status(200).send({ count, maxPage: Math.ceil(count / limit) || 1, rows });
@@ -56,7 +56,7 @@ module.exports = {
         limit,
         offset: currentPage * limit - limit,
         order: [['createdAt', 'desc']],
-        include: User,
+        include: [{ model: User, attributes: ['id', 'name'] }],
       });
 
       res.status(200).send({ count, maxPage: Math.ceil(count / limit) || 1, rows });
@@ -102,7 +102,7 @@ module.exports = {
         limit,
         offset: currentPage * limit - limit,
         order: [['createdAt', 'desc']],
-        include: Admin,
+        include: [{ model: Admin, attributes: ['name'], paranoid: false }],
       });
 
       res.status(200).send({ message: 'Message deleted successfully!', maxPage: Math.ceil(count / limit) || 1, rows, count });
@@ -121,7 +121,7 @@ module.exports = {
         limit,
         offset: currentPage * limit - limit,
         order: [['createdAt', 'desc']],
-        include: User,
+        include: [{ model: User, attributes: ['id', 'name'] }],
       });
 
       res.status(200).send({ message: 'Message deleted successfully!', maxPage: Math.ceil(count / limit) || 1, rows, count });

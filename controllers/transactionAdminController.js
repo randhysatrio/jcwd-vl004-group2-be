@@ -35,10 +35,7 @@ module.exports = {
         query.where = {
           ...query.where,
           createdAt: {
-            [Op.between]: [
-              startOfDay(new Date(startDate)),
-              endOfDay(new Date(endDate)),
-            ],
+            [Op.between]: [startOfDay(new Date(startDate)), endOfDay(new Date(endDate))],
           },
         };
       }
@@ -61,13 +58,7 @@ module.exports = {
           { model: User, attributes: ['name'], required: true },
           {
             model: Address,
-            attributes: [
-              'address',
-              'city',
-              'province',
-              'country',
-              'postalcode',
-            ],
+            attributes: ['address', 'city', 'province', 'country', 'postalcode'],
             required: true,
             paranoid: false,
           },
@@ -122,13 +113,7 @@ module.exports = {
           { model: User, attributes: ['name', 'email', 'phone_number'] },
           {
             model: Address,
-            attributes: [
-              'address',
-              'city',
-              'province',
-              'country',
-              'postalcode',
-            ],
+            attributes: ['address', 'city', 'province', 'country', 'postalcode'],
             paranoid: false,
           },
           {
@@ -177,9 +162,7 @@ module.exports = {
             <p><b>The Heizen Berg Co. Admin Team</b></p>`,
             attachments: [
               {
-                filename: `${transaction.user.name.replace(' ', '')}_invoice_${
-                  transaction.id
-                }.pdf`,
+                filename: `${transaction.user.name.replace(' ', '')}_invoice_${transaction.id}.pdf`,
                 path: path.resolve(invoicePdfPath),
                 contentType: 'application/pdf',
               },
@@ -214,7 +197,7 @@ module.exports = {
             include: [
               {
                 model: Product,
-                attributes: ['name', 'image', 'unit'],
+                attributes: ['id', 'name', 'image', 'unit', 'volume'],
                 paranoid: false,
               },
             ],
@@ -222,13 +205,7 @@ module.exports = {
           { model: User, attributes: ['name', 'email', 'phone_number'] },
           {
             model: Address,
-            attributes: [
-              'address',
-              'city',
-              'province',
-              'country',
-              'postalcode',
-            ],
+            attributes: ['address', 'city', 'province', 'country', 'postalcode'],
             paranoid: false,
           },
           {
@@ -248,6 +225,13 @@ module.exports = {
             where: { id: req.params.id },
           }
         );
+
+        await transaction.invoiceitems.map((item) => {
+          Product.increment(
+            { stock: Math.floor(item.quantity / item.product.volume), stock_in_unit: item.quantity },
+            { where: { id: item.product.id } }
+          );
+        });
 
         await Message.create({
           userId: transaction.userId,
@@ -274,9 +258,7 @@ module.exports = {
             <p><b>The Heizen Berg Co. Admin Team</b></p>`,
             attachments: [
               {
-                filename: `${transaction.user.name.replace(' ', '')}_invoice_${
-                  transaction.id
-                }.pdf`,
+                filename: `${transaction.user.name.replace(' ', '')}_invoice_${transaction.id}.pdf`,
                 path: path.resolve(invoicePdfPath),
                 contentType: 'application/pdf',
               },
