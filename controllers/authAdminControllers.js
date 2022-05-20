@@ -36,24 +36,25 @@ module.exports = {
         paranoid: false,
       });
 
-      if (login.deletedAt) {
-        return res.send({ conflict: true, message: 'This account is already deactivated!' });
-      }
-
       if (login) {
+        if (login.deletedAt) {
+          return res.send({ conflict: true, message: 'This account is already deactivated!' });
+        } else {
+          let { id, name, email, username, password } = login;
+          let token = createToken({
+            id,
+            name,
+            email,
+            username,
+            password,
+          });
+
+          delete login.password;
+
+          res.status(200).send({ data: login, token: token, message: 'Login successed' });
+        }
+
         // create token
-        let { id, name, email, username, password } = login;
-        let token = createToken({
-          id,
-          name,
-          email,
-          username,
-          password,
-        });
-
-        delete login.password;
-
-        res.status(200).send({ data: login, token: token, message: 'Login successed' });
       } else {
         throw new Error('Wrong email or password');
       }
