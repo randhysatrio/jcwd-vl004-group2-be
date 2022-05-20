@@ -206,6 +206,7 @@ module.exports = {
             attributes: ['id', 'price', 'quantity', 'subtotal'],
             include: [{ model: Product, attributes: ['name', 'image', 'unit', 'deletedAt'], paranoid: false }],
           },
+          { model: DeliveryOption, attributes: ['name', 'cost'], paranoid: false },
         ],
         limit,
         offset: limit * currentPage - limit,

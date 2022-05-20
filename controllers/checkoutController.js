@@ -16,8 +16,7 @@ const { Op } = require('sequelize');
 module.exports = {
   addCheckout: async (req, res) => {
     try {
-      let { notes, addressId, deliveryoptionId, orderItems, paymentmethodId } =
-        req.body.dataCheckout;
+      let { notes, addressId, deliveryoptionId, orderItems, paymentmethodId } = req.body.dataCheckout;
 
       // check stock product
       for (let i = 0; i < orderItems.length; i++) {
@@ -74,9 +73,7 @@ module.exports = {
         Product.update(
           {
             stock_in_unit: item.product.stock_in_unit - item.quantity,
-            stock: Math.floor(
-              (item.product.stock_in_unit - item.quantity) / item.product.volume
-            ),
+            stock: Math.floor((item.product.stock_in_unit - item.quantity) / item.product.volume),
           },
           { where: { id: item.product.id } }
         );
@@ -122,14 +119,31 @@ module.exports = {
     try {
       const { address, city, province, country, postalcode } = req.body;
 
-      await Address.create({
-        address,
-        city,
-        province,
-        country,
-        postalcode,
-        userId: req.user.id,
-      });
+      const existingAddress = await Address.findOne({ where: { ...req.body, userId: req.user.id } });
+      const defaultAddress = await Address.findOne({ where: { userId: req.user.id, is_default: true } });
+
+      if (existingAddress) {
+        return res.send({ conflict: 'This address already exist' });
+      } else if (defaultAddress) {
+        await Address.create({
+          address,
+          city,
+          province,
+          country,
+          postalcode,
+          userId: req.user.id,
+        });
+      } else {
+        await Address.create({
+          address,
+          city,
+          province,
+          country,
+          postalcode,
+          userId: req.user.id,
+          is_default: true,
+        });
+      }
 
       const response = await Address.findAll({
         where: { userId: req.user.id },
@@ -147,9 +161,7 @@ module.exports = {
       // multer
       upload(req, res, async (error) => {
         try {
-          let { invoiceheaderId, currentPage, limit } = JSON.parse(
-            req.body.data
-          );
+          let { invoiceheaderId, currentPage, limit } = JSON.parse(req.body.data);
 
           const checkIsUploaded = await PaymentProof.findOne({
             where: {
@@ -170,10 +182,7 @@ module.exports = {
             invoiceheaderId,
           });
 
-          await InvoiceHeader.update(
-            { status: 'pending' },
-            { where: { id: invoiceheaderId } }
-          );
+          await InvoiceHeader.update({ status: 'pending' }, { where: { id: invoiceheaderId } });
 
           await Message.create({
             userId: req.user.id,
@@ -246,9 +255,7 @@ module.exports = {
           {
             model: InvoiceItem,
             attributes: ['quantity', 'productId'],
-            include: [
-              { model: Product, attributes: ['stock_in_unit', 'volume'], paranoid: false },
-            ],
+            include: [{ model: Product, attributes: ['stock_in_unit', 'volume'], paranoid: false }],
           },
         ],
       });
@@ -257,9 +264,7 @@ module.exports = {
         Product.update(
           {
             stock_in_unit: item.product.stock_in_unit + item.quantity,
-            stock: Math.floor(
-              (item.product.stock_in_unit + item.quantity) / item.product.volume
-            ),
+            stock: Math.floor((item.product.stock_in_unit + item.quantity) / item.product.volume),
           },
           { where: { id: item.productId } }
         );
@@ -273,9 +278,7 @@ module.exports = {
           'id',
           'createdAt',
           [
-            sequelize.literal(
-              `(SELECT SUM(price * quantity) FROM invoiceitems WHERE invoiceitems.invoiceheaderId = invoiceheader.id)`
-            ),
+            sequelize.literal(`(SELECT SUM(price * quantity) FROM invoiceitems WHERE invoiceitems.invoiceheaderId = invoiceheader.id)`),
             'total',
           ],
         ],
@@ -321,10 +324,7 @@ module.exports = {
           '$invoiceheader.status$': 'awaiting',
           '$product.deletedAt$': { [Op.not]: null },
         },
-        include: [
-          { model: InvoiceHeader },
-          { model: Product, paranoid: false },
-        ],
+        include: [{ model: InvoiceHeader }, { model: Product, paranoid: false }],
         raw: true,
       });
 
@@ -335,9 +335,7 @@ module.exports = {
           'id',
           'createdAt',
           [
-            sequelize.literal(
-              `(SELECT SUM(price * quantity) FROM invoiceitems WHERE invoiceitems.invoiceheaderId = invoiceheader.id)`
-            ),
+            sequelize.literal(`(SELECT SUM(price * quantity) FROM invoiceitems WHERE invoiceitems.invoiceheaderId = invoiceheader.id)`),
             'total',
           ],
         ],
@@ -351,9 +349,7 @@ module.exports = {
         ],
       });
 
-      res
-        .status(200)
-        .send({ data: response, notAvailable: notAvailable ? true : false });
+      res.status(200).send({ data: response, notAvailable: notAvailable ? true : false });
     } catch (error) {
       res.status(500).send({ message: error.message });
     }
