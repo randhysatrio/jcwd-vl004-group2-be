@@ -19,6 +19,7 @@ module.exports = {
           { model: User, attributes: ['name', 'profile_picture'] },
           { model: Like, attributes: ['userId'] },
         ],
+        distinct: true,
       });
 
       const maxPage = Math.ceil(count / limit) || 1;
@@ -34,8 +35,6 @@ module.exports = {
 
       await Review.create(data);
 
-      const totalReviews = await Review.count({ where: { productId } });
-
       const avgRating = await Review.findAll({
         where: { productId },
         attributes: [[sequelize.literal(`(SELECT AVG(reviews.rating) FROM reviews WHERE reviews.productId = ${productId})`), 'score']],
@@ -49,13 +48,14 @@ module.exports = {
           { model: Like, attributes: ['userId'] },
         ],
         order: [['createdAt', 'desc']],
+        distinct: true,
       });
 
       const maxPage = Math.ceil(count / limit) || 1;
 
       res.status(200).send({
         message: 'Review posted successfully!',
-        totalReviews,
+        totalReviews: count,
         rows,
         maxPage,
         avgRating: avgRating[0]?.getDataValue('score') || 0,
@@ -94,8 +94,6 @@ module.exports = {
 
       await Review.destroy({ where: { id: req.params.id } });
 
-      const totalReviews = await Review.count({ where: { productId } });
-
       const avgRating = await Review.findAll({
         where: { productId },
         attributes: [[sequelize.literal(`(SELECT AVG(reviews.rating) FROM reviews WHERE reviews.productId = ${productId})`), 'score']],
@@ -110,13 +108,14 @@ module.exports = {
           { model: Like, attributes: ['userId'] },
         ],
         order: [['createdAt', 'desc']],
+        distinct: true,
       });
 
       const maxPage = Math.ceil(count / limit) || 1;
 
       res.status(200).send({
         message: 'Review deleted successfully!',
-        totalReviews,
+        totalReviews: count,
         rows,
         maxPage,
         avgRating: avgRating[0]?.getDataValue('score') || 0,
