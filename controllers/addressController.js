@@ -12,7 +12,7 @@ module.exports = {
       }
 
       if (data.is_default) {
-        await Address.update({ is_default: false }, { where: { userId: req.user.id } });
+        await Address.update({ is_default: false }, { where: { userId: req.user.id, is_default: true } });
       }
 
       await Address.create({ ...data, userId: req.user.id });
@@ -72,7 +72,7 @@ module.exports = {
     try {
       const { limit, currentPage } = req.body;
 
-      await Address.update({ is_default: false }, { where: { userid: req.user.id } });
+      await Address.update({ is_default: false }, { where: { userId: req.user.id, is_default: true } });
 
       await Address.update({ is_default: true }, { where: { id: req.params.id } });
 
