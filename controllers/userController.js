@@ -37,7 +37,8 @@ module.exports = {
           }
         );
       }
-      res.status(200).send(user);
+      const updatedUser = await User.findByPk(req.params.id);
+      res.status(200).send(updatedUser.active);
     } catch (error) {
       res.status(500).send(error);
     }
