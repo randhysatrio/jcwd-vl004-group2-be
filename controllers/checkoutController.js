@@ -16,7 +16,8 @@ const { Op } = require('sequelize');
 module.exports = {
   addCheckout: async (req, res) => {
     try {
-      let { notes, addressId, deliveryoptionId, orderItems, paymentmethodId } = req.body.dataCheckout;
+      let { notes, addressId, deliveryoptionId, orderItems, paymentmethodId } =
+        req.body.dataCheckout;
 
       // check stock product
       for (let i = 0; i < orderItems.length; i++) {
@@ -73,7 +74,9 @@ module.exports = {
         Product.update(
           {
             stock_in_unit: item.product.stock_in_unit - item.quantity,
-            stock: Math.floor((item.product.stock_in_unit - item.quantity) / item.product.volume),
+            stock: Math.floor(
+              (item.product.stock_in_unit - item.quantity) / item.product.volume
+            ),
           },
           { where: { id: item.product.id } }
         );
@@ -119,8 +122,12 @@ module.exports = {
     try {
       const { address, city, province, country, postalcode } = req.body;
 
-      const existingAddress = await Address.findOne({ where: { ...req.body, userId: req.user.id } });
-      const defaultAddress = await Address.findOne({ where: { userId: req.user.id, is_default: true } });
+      const existingAddress = await Address.findOne({
+        where: { ...req.body, userId: req.user.id },
+      });
+      const defaultAddress = await Address.findOne({
+        where: { userId: req.user.id, is_default: true },
+      });
 
       if (existingAddress) {
         return res.send({ conflict: 'This address already exist' });
@@ -161,7 +168,9 @@ module.exports = {
       // multer
       upload(req, res, async (error) => {
         try {
-          let { invoiceheaderId, currentPage, limit } = JSON.parse(req.body.data);
+          let { invoiceheaderId, currentPage, limit } = JSON.parse(
+            req.body.data
+          );
 
           const checkIsUploaded = await PaymentProof.findOne({
             where: {
@@ -182,7 +191,10 @@ module.exports = {
             invoiceheaderId,
           });
 
-          await InvoiceHeader.update({ status: 'pending' }, { where: { id: invoiceheaderId } });
+          await InvoiceHeader.update(
+            { status: 'pending' },
+            { where: { id: invoiceheaderId } }
+          );
 
           await Message.create({
             userId: req.user.id,
@@ -255,7 +267,13 @@ module.exports = {
           {
             model: InvoiceItem,
             attributes: ['quantity', 'productId'],
-            include: [{ model: Product, attributes: ['stock_in_unit', 'volume'], paranoid: false }],
+            include: [
+              {
+                model: Product,
+                attributes: ['stock_in_unit', 'volume'],
+                paranoid: false,
+              },
+            ],
           },
         ],
       });
@@ -264,9 +282,11 @@ module.exports = {
         Product.update(
           {
             stock_in_unit: item.product.stock_in_unit + item.quantity,
-            stock: Math.floor((item.product.stock_in_unit + item.quantity) / item.product.volume),
+            stock: Math.floor(
+              (item.product.stock_in_unit + item.quantity) / item.product.volume
+            ),
           },
-          { where: { id: item.productId } }
+          { where: { id: item.productId }, paranoid: false }
         );
       });
 
@@ -278,7 +298,9 @@ module.exports = {
           'id',
           'createdAt',
           [
-            sequelize.literal(`(SELECT SUM(price * quantity) FROM invoiceitems WHERE invoiceitems.invoiceheaderId = invoiceheader.id)`),
+            sequelize.literal(
+              `(SELECT SUM(price * quantity) FROM invoiceitems WHERE invoiceitems.invoiceheaderId = invoiceheader.id)`
+            ),
             'total',
           ],
         ],
@@ -317,16 +339,13 @@ module.exports = {
   getAwaiting: async (req, res) => {
     try {
       // check stock product
-      let notAvailable = await InvoiceItem.findOne({
+      let notAvailable = await InvoiceItem.findAll({
         where: {
-          '$invoiceheader.userId$': req.user.id,
-          '$invoiceheader.id$': req.params.id,
-          '$invoiceheader.status$': 'awaiting',
+          invoiceheaderId: req.params.id,
           '$product.deletedAt$': { [Op.not]: null },
         },
-        include: [{ model: InvoiceHeader }, { model: Product, paranoid: false }],
-        raw: true,
-      });
+        include: [{ model: Product, paranoid: false }],
+      })
 
       // get data
       const response = await InvoiceHeader.findOne({
@@ -335,7 +354,9 @@ module.exports = {
           'id',
           'createdAt',
           [
-            sequelize.literal(`(SELECT SUM(price * quantity) FROM invoiceitems WHERE invoiceitems.invoiceheaderId = invoiceheader.id)`),
+            sequelize.literal(
+              `(SELECT SUM(price * quantity) FROM invoiceitems WHERE invoiceitems.invoiceheaderId = invoiceheader.id)`
+            ),
             'total',
           ],
         ],
@@ -349,7 +370,10 @@ module.exports = {
         ],
       });
 
-      res.status(200).send({ data: response, notAvailable: notAvailable ? true : false });
+      res.status(200).send({
+        data: response,
+        notAvailable: notAvailable.length ? true : false,
+      });
     } catch (error) {
       res.status(500).send({ message: error.message });
     }
