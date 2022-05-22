@@ -8,6 +8,12 @@ const Admin = sequelize.define(
     name: {
       type: DataTypes.STRING,
       allowNull: false,
+      validate: {
+        is: {
+          args: /^[a-zA-Z. ]*$/,
+          msg: 'Name cannot contain number or special characters',
+        },
+      },
     },
     email: {
       type: DataTypes.STRING,
