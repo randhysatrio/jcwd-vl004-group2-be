@@ -14,8 +14,8 @@ const User = sequelize.define('user', {
     allowNull: false,
     validate: {
       is: {
-        args: /^[a-zA-Z0-9 ]*$/,
-        msg: 'Name cannot contain special characters',
+        args: /^[a-zA-Z. ]*$/,
+        msg: 'Name cannot contain number or special characters',
       },
     },
   },
