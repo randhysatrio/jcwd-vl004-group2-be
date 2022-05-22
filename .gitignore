@@ -8,5 +8,8 @@
 !/public/images/profile
 /public/images/profile/*
 !/public/images/profile/default.png
+!/public/images/profile/default.png
+!/public/images/profile/1652375770215.jpg
+!/public/images/profile/1652511310804.png
 
 .env
