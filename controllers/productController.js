@@ -237,24 +237,26 @@ module.exports = {
         product,
       };
 
-      if (withRelated) {
-        const relatedProducts = await Product.findAll({
-          where: { categoryId: product.categoryId },
-          attributes: [
-            'id',
-            'name',
-            'image',
-            'price_sell',
-            'stock_in_unit',
-            'volume',
-            'unit',
-            [sequelize.literal(`(SELECT COUNT(*) FROM reviews WHERE reviews.productId = product.id)`), 'totalReviews'],
-            [sequelize.literal(`(SELECT AVG(reviews.rating) FROM reviews WHERE reviews.productId = product.id)`), 'avgRating'],
-          ],
-          limit,
-        });
+      if (product) {
+        if (withRelated) {
+          const relatedProducts = await Product.findAll({
+            where: { categoryId: product.categoryId },
+            attributes: [
+              'id',
+              'name',
+              'image',
+              'price_sell',
+              'stock_in_unit',
+              'volume',
+              'unit',
+              [sequelize.literal(`(SELECT COUNT(*) FROM reviews WHERE reviews.productId = product.id)`), 'totalReviews'],
+              [sequelize.literal(`(SELECT AVG(reviews.rating) FROM reviews WHERE reviews.productId = product.id)`), 'avgRating'],
+            ],
+            limit,
+          });
 
-        result.relatedProducts = relatedProducts.filter((related) => related.id !== product.id);
+          result.relatedProducts = relatedProducts.filter((related) => related.id !== product.id);
+        }
       }
 
       res.status(200).send(result);
