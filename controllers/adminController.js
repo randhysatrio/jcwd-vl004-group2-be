@@ -95,7 +95,7 @@ module.exports = {
       const maxPage = Math.ceil(count / limit) || 1;
 
       res.status(200).send({
-        message: 'Admin account deleted successfully!',
+        message: 'Account deactivated successfully!',
         rows,
         maxPage,
         totalAdmins: count,
