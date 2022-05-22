@@ -4,6 +4,7 @@
 /public/*
 !/public/images
 /public/images/*
+!/public/images/products
 !/public/images/profile
 /public/images/profile/*
 !/public/images/profile/default.png
