@@ -85,7 +85,7 @@ module.exports = {
       const admin = await Admin.findByPk(req.params.id, { attributes: ['is_super'] });
 
       if (admin.is_super) {
-        return res.send({ conflict: true, message: 'This account cannot be deleted!' });
+        return res.send({ conflict: true, message: 'This account cannot be deactivated!' });
       }
 
       await Admin.destroy({ where: { id: req.params.id } });

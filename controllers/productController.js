@@ -55,6 +55,8 @@ module.exports = {
         between,
         fromHome,
         fromAllProducts,
+        fromHomeAdmin,
+        fromDashboardAdmin,
         sort,
       } = req.body;
 
@@ -187,6 +189,15 @@ module.exports = {
           [sequelize.literal(`(SELECT AVG(reviews.rating) FROM reviews WHERE reviews.productId = product.id)`), 'avgRating'],
         ];
         data.include = [{ model: Category, attributes: ['name'] }];
+      }
+
+      if (fromDashboardAdmin) {
+        data.order = [['createdAt', 'DESC']];
+      }
+
+      if (fromHomeAdmin) {
+        data.attributes = ['id', 'name'];
+        data.order = [['createdAt', 'DESC']];
       }
 
       const { count, rows } = await Product.findAndCountAll(data);
