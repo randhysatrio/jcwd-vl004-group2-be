@@ -16,8 +16,7 @@ const { Op } = require('sequelize');
 module.exports = {
   addCheckout: async (req, res) => {
     try {
-      let { notes, addressId, deliveryoptionId, orderItems, paymentmethodId } =
-        req.body.dataCheckout;
+      let { notes, addressId, deliveryoptionId, orderItems, paymentmethodId } = req.body.dataCheckout;
 
       // check stock product
       for (let i = 0; i < orderItems.length; i++) {
@@ -74,9 +73,7 @@ module.exports = {
         Product.update(
           {
             stock_in_unit: item.product.stock_in_unit - item.quantity,
-            stock: Math.floor(
-              (item.product.stock_in_unit - item.quantity) / item.product.volume
-            ),
+            stock: Math.floor((item.product.stock_in_unit - item.quantity) / item.product.volume),
           },
           { where: { id: item.product.id } }
         );
@@ -168,9 +165,7 @@ module.exports = {
       // multer
       upload(req, res, async (error) => {
         try {
-          let { invoiceheaderId, currentPage, limit } = JSON.parse(
-            req.body.data
-          );
+          let { invoiceheaderId, currentPage, limit } = JSON.parse(req.body.data);
 
           const checkIsUploaded = await PaymentProof.findOne({
             where: {
@@ -191,10 +186,7 @@ module.exports = {
             invoiceheaderId,
           });
 
-          await InvoiceHeader.update(
-            { status: 'pending' },
-            { where: { id: invoiceheaderId } }
-          );
+          await InvoiceHeader.update({ status: 'pending' }, { where: { id: invoiceheaderId } });
 
           await Message.create({
             userId: req.user.id,
@@ -278,15 +270,13 @@ module.exports = {
         ],
       });
 
-      await invoiceData.invoiceitems.forEach((item) => {
-        Product.update(
+      invoiceData.invoiceitems.forEach(async (item) => {
+        await Product.increment(
           {
-            stock_in_unit: item.product.stock_in_unit + item.quantity,
-            stock: Math.floor(
-              (item.product.stock_in_unit + item.quantity) / item.product.volume
-            ),
+            stock_in_unit: item.quantity,
+            stock: Math.floor(item.quantity / item.product.volume),
           },
-          { where: { id: item.productId }, paranoid: false }
+          { where: { id: item.productId } }
         );
       });
 
@@ -298,9 +288,7 @@ module.exports = {
           'id',
           'createdAt',
           [
-            sequelize.literal(
-              `(SELECT SUM(price * quantity) FROM invoiceitems WHERE invoiceitems.invoiceheaderId = invoiceheader.id)`
-            ),
+            sequelize.literal(`(SELECT SUM(price * quantity) FROM invoiceitems WHERE invoiceitems.invoiceheaderId = invoiceheader.id)`),
             'total',
           ],
         ],
@@ -345,7 +333,7 @@ module.exports = {
           '$product.deletedAt$': { [Op.not]: null },
         },
         include: [{ model: Product, paranoid: false }],
-      })
+      });
 
       // get data
       const response = await InvoiceHeader.findOne({
@@ -354,9 +342,7 @@ module.exports = {
           'id',
           'createdAt',
           [
-            sequelize.literal(
-              `(SELECT SUM(price * quantity) FROM invoiceitems WHERE invoiceitems.invoiceheaderId = invoiceheader.id)`
-            ),
+            sequelize.literal(`(SELECT SUM(price * quantity) FROM invoiceitems WHERE invoiceitems.invoiceheaderId = invoiceheader.id)`),
             'total',
           ],
         ],
