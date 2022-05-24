@@ -126,7 +126,7 @@ module.exports = {
           received: true,
         });
       }
-    } catch (error) {
+    } catch (err) {
       res.status(500).send(err);
     }
   },
