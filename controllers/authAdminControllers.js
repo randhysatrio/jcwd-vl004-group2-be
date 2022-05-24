@@ -40,21 +40,21 @@ module.exports = {
         if (login.deletedAt) {
           return res.send({ conflict: true, message: 'This account is already deactivated!' });
         } else {
-          let { id, name, email, username, password } = login;
+          // create token
+          let { id, name, email, username, password, is_super } = login;
           let token = createToken({
             id,
             name,
             email,
             username,
             password,
+            is_super,
           });
 
           delete login.password;
 
           res.status(200).send({ data: login, token: token, message: 'Login successed' });
         }
-
-        // create token
       } else {
         throw new Error('Wrong email or password');
       }
@@ -75,13 +75,14 @@ module.exports = {
 
       if (reset) {
         // Create token for send to email reset
-        const { id, name, email, username, password } = reset;
+        const { id, name, email, username, password, is_super } = reset;
         const token = createToken({
           id,
           name,
           email,
           username,
           password,
+          is_super,
         });
 
         // Setup email message

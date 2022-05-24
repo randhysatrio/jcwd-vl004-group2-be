@@ -6,6 +6,10 @@ const Admin = require('../models/Admin');
 module.exports = {
   getAdmins: async (req, res) => {
     try {
+      if (!req.admin.is_super) {
+        return res.status(409).send(`You don't have authorization to perform this action`);
+      }
+
       const { limit, currentPage, sort } = req.body;
 
       const { keyword } = req.query;
@@ -46,6 +50,10 @@ module.exports = {
   },
   createAdmin: async (req, res) => {
     try {
+      if (!req.admin.is_super) {
+        return res.status(409).send(`You don't have authorization to perform this action`);
+      }
+
       const { data, limit, currentPage } = req.body;
 
       data.password = Crypto.createHmac('sha1', 'hash123').update(data.password).digest('hex');
@@ -80,6 +88,10 @@ module.exports = {
   },
   deleteAdmin: async (req, res) => {
     try {
+      if (!req.admin.is_super) {
+        return res.status(409).send(`You don't have authorization to perform this action`);
+      }
+
       const { limit, currentPage } = req.body;
 
       const admin = await Admin.findByPk(req.params.id, { attributes: ['is_super'] });
