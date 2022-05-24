@@ -27,8 +27,14 @@ const Admin = sequelize.define(
     },
     username: DataTypes.STRING,
     password: {
-      type: DataTypes.STRING(1000),
+      type: DataTypes.STRING,
       allowNull: false,
+      validate: {
+        is: {
+          args: /^[a-zA-Z0-9._]*$/,
+          msg: 'Only alphanumeric characters, (-), (_), (.) is allowed and no spaces',
+        },
+      },
     },
     profile_picture: {
       type: DataTypes.STRING,
