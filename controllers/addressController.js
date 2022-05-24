@@ -21,6 +21,7 @@ module.exports = {
         where: { userId: req.user.id },
         limit,
         offset: currentPage * limit - limit,
+        attributes: { exclude: ['createdAt', 'updatedAt', 'deletedAt'] },
         order: [['is_default', 'desc']],
       });
 
@@ -42,6 +43,7 @@ module.exports = {
         where: { userId: req.user.id },
         limit,
         offset: limit * currentPage - limit,
+        attributes: { exclude: ['createdAt', 'updatedAt', 'deletedAt'] },
         order: [['is_default', 'desc']],
       });
 
@@ -60,6 +62,7 @@ module.exports = {
         where: { userId: req.user.id },
         limit,
         offset: limit * currentPage - limit,
+        attributes: { exclude: ['createdAt', 'updatedAt', 'deletedAt'] },
         order: [['is_default', 'desc']],
       });
 
@@ -80,6 +83,7 @@ module.exports = {
         where: { userId: req.user.id },
         limit,
         offset: limit * currentPage - limit,
+        attributes: { exclude: ['createdAt', 'updatedAt', 'deletedAt'] },
         order: [['is_default', 'desc']],
       });
 
