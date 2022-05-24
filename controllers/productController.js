@@ -1,8 +1,8 @@
-const { Op } = require('sequelize');
-const Product = require('../models/Product');
-const Category = require('../models/Category');
-const fs = require('fs');
-const sequelize = require('../configs/sequelize');
+const { Op } = require("sequelize");
+const Product = require("../models/Product");
+const Category = require("../models/Category");
+const fs = require("fs");
+const sequelize = require("../configs/sequelize");
 
 module.exports = {
   add: async (req, res) => {
@@ -22,7 +22,7 @@ module.exports = {
         stock_in_unit: productData.stock * productData.volume,
       });
 
-      res.status(201).send('Product created successfully!');
+      res.status(201).send("Product created successfully!");
     } catch (err) {
       console.log(err);
       res.status(500).send(err);
@@ -66,11 +66,11 @@ module.exports = {
 
       const { search } = req.query;
 
-      if (category !== 'all') {
+      if (category !== "all") {
         if (category) {
           const categoryData = await Category.findOne({
             where: { name: category },
-            attributes: ['id'],
+            attributes: ["id"],
           });
           query.where = { ...query.where, categoryId: categoryData.id };
         }
@@ -82,7 +82,7 @@ module.exports = {
           [Op.or]: {
             name: { [Op.substring]: keyword },
             appearance: { [Op.substring]: keyword },
-            '$category.name$': { [Op.substring]: keyword },
+            "$category.name$": { [Op.substring]: keyword },
           },
         };
       }
@@ -93,7 +93,7 @@ module.exports = {
           [Op.or]: {
             name: { [Op.substring]: search },
             appearance: { [Op.substring]: search },
-            '$category.name$': { [Op.substring]: search },
+            "$category.name$": { [Op.substring]: search },
           },
         };
       }
@@ -103,26 +103,30 @@ module.exports = {
       }
 
       if (sort) {
-        query.order = [sort.split(',')];
+        query.order = [sort.split(",")];
       }
 
-      if (sort_price_sell) {
-        query.order = [sort_price_sell.split(',')];
-      }
-      if (sort_price_buy) {
-        query.order = [sort_price_buy.split(',')];
-      }
+      if (fromDashboardAdmin) {
+        query.order = [["createdAt", "DESC"]];
 
-      if (sort_stock_in_unit) {
-        query.order = [sort_stock_in_unit.split(',')];
-      }
+        if (sort_price_sell) {
+          query.order = [sort_price_sell.split(",")];
+        }
+        if (sort_price_buy) {
+          query.order = [sort_price_buy.split(",")];
+        }
 
-      if (sort_stock) {
-        query.order = [sort_stock.split(',')];
-      }
+        if (sort_stock_in_unit) {
+          query.order = [sort_stock_in_unit.split(",")];
+        }
 
-      if (sort_volume) {
-        query.order = [sort_volume.split(',')];
+        if (sort_stock) {
+          query.order = [sort_stock.split(",")];
+        }
+
+        if (sort_volume) {
+          query.order = [sort_volume.split(",")];
+        }
       }
 
       if (gte) {
@@ -144,60 +148,86 @@ module.exports = {
       const data = {
         ...query,
         attributes: [
-          'id',
-          'name',
-          'price_buy',
-          'price_sell',
-          'stock',
-          'unit',
-          'volume',
-          'stock_in_unit',
-          'description',
-          'image',
-          'appearance',
-          [sequelize.literal(`(SELECT COUNT(*) FROM reviews WHERE reviews.productId = product.id)`), 'totalReviews'],
-          [sequelize.literal(`(SELECT AVG(reviews.rating) FROM reviews WHERE reviews.productId = product.id)`), 'avgRating'],
+          "id",
+          "name",
+          "price_buy",
+          "price_sell",
+          "stock",
+          "unit",
+          "volume",
+          "stock_in_unit",
+          "description",
+          "image",
+          "appearance",
+          [
+            sequelize.literal(
+              `(SELECT COUNT(*) FROM reviews WHERE reviews.productId = product.id)`
+            ),
+            "totalReviews",
+          ],
+          [
+            sequelize.literal(
+              `(SELECT AVG(reviews.rating) FROM reviews WHERE reviews.productId = product.id)`
+            ),
+            "avgRating",
+          ],
         ],
-        include: { model: Category, attributes: ['id', 'name'] },
+        include: { model: Category, attributes: ["id", "name"] },
       };
 
       if (fromHome) {
         data.attributes = [
-          'id',
-          'name',
-          'image',
-          'price_sell',
-          'stock_in_unit',
-          'volume',
-          'unit',
-          [sequelize.literal(`(SELECT COUNT(*) FROM reviews WHERE reviews.productId = product.id)`), 'totalReviews'],
-          [sequelize.literal(`(SELECT AVG(reviews.rating) FROM reviews WHERE reviews.productId = product.id)`), 'avgRating'],
+          "id",
+          "name",
+          "image",
+          "price_sell",
+          "stock_in_unit",
+          "volume",
+          "unit",
+          [
+            sequelize.literal(
+              `(SELECT COUNT(*) FROM reviews WHERE reviews.productId = product.id)`
+            ),
+            "totalReviews",
+          ],
+          [
+            sequelize.literal(
+              `(SELECT AVG(reviews.rating) FROM reviews WHERE reviews.productId = product.id)`
+            ),
+            "avgRating",
+          ],
         ];
       }
 
       if (fromAllProducts) {
         data.attributes = [
-          'id',
-          'name',
-          'image',
-          'description',
-          'price_sell',
-          'stock_in_unit',
-          'volume',
-          'unit',
-          [sequelize.literal(`(SELECT COUNT(*) FROM reviews WHERE reviews.productId = product.id)`), 'totalReviews'],
-          [sequelize.literal(`(SELECT AVG(reviews.rating) FROM reviews WHERE reviews.productId = product.id)`), 'avgRating'],
+          "id",
+          "name",
+          "image",
+          "description",
+          "price_sell",
+          "stock_in_unit",
+          "volume",
+          "unit",
+          [
+            sequelize.literal(
+              `(SELECT COUNT(*) FROM reviews WHERE reviews.productId = product.id)`
+            ),
+            "totalReviews",
+          ],
+          [
+            sequelize.literal(
+              `(SELECT AVG(reviews.rating) FROM reviews WHERE reviews.productId = product.id)`
+            ),
+            "avgRating",
+          ],
         ];
-        data.include = [{ model: Category, attributes: ['name'] }];
-      }
-
-      if (fromDashboardAdmin) {
-        data.order = [['createdAt', 'DESC']];
+        data.include = [{ model: Category, attributes: ["name"] }];
       }
 
       if (fromHomeAdmin) {
-        data.attributes = ['id', 'name'];
-        data.order = [['createdAt', 'DESC']];
+        data.attributes = ["id", "name"];
+        data.order = [["createdAt", "DESC"]];
       }
 
       const { count, rows } = await Product.findAndCountAll(data);
@@ -210,8 +240,8 @@ module.exports = {
   appearance: async (req, res) => {
     try {
       const appearances = await Product.findAll({
-        attributes: ['appearance'],
-        group: 'appearance',
+        attributes: ["appearance"],
+        group: "appearance",
       });
 
       res.status(200).send(appearances);
@@ -225,23 +255,33 @@ module.exports = {
 
       const product = await Product.findByPk(req.params.id, {
         attributes: [
-          'id',
-          'name',
-          'price_buy',
-          'price_sell',
-          'price_buy',
-          'stock',
-          'volume',
-          'unit',
-          'stock_in_unit',
-          'description',
-          'image',
-          'appearance',
-          'categoryId',
-          [sequelize.literal(`(SELECT COUNT(*) FROM reviews WHERE reviews.productId = product.id)`), 'totalReviews'],
-          [sequelize.literal(`(SELECT AVG(reviews.rating) FROM reviews WHERE reviews.productId = product.id)`), 'avgRating'],
+          "id",
+          "name",
+          "price_buy",
+          "price_sell",
+          "price_buy",
+          "stock",
+          "volume",
+          "unit",
+          "stock_in_unit",
+          "description",
+          "image",
+          "appearance",
+          "categoryId",
+          [
+            sequelize.literal(
+              `(SELECT COUNT(*) FROM reviews WHERE reviews.productId = product.id)`
+            ),
+            "totalReviews",
+          ],
+          [
+            sequelize.literal(
+              `(SELECT AVG(reviews.rating) FROM reviews WHERE reviews.productId = product.id)`
+            ),
+            "avgRating",
+          ],
         ],
-        include: { model: Category, attributes: ['id', 'name'] },
+        include: { model: Category, attributes: ["id", "name"] },
       });
 
       const result = {
@@ -253,20 +293,32 @@ module.exports = {
           const relatedProducts = await Product.findAll({
             where: { categoryId: product.categoryId },
             attributes: [
-              'id',
-              'name',
-              'image',
-              'price_sell',
-              'stock_in_unit',
-              'volume',
-              'unit',
-              [sequelize.literal(`(SELECT COUNT(*) FROM reviews WHERE reviews.productId = product.id)`), 'totalReviews'],
-              [sequelize.literal(`(SELECT AVG(reviews.rating) FROM reviews WHERE reviews.productId = product.id)`), 'avgRating'],
+              "id",
+              "name",
+              "image",
+              "price_sell",
+              "stock_in_unit",
+              "volume",
+              "unit",
+              [
+                sequelize.literal(
+                  `(SELECT COUNT(*) FROM reviews WHERE reviews.productId = product.id)`
+                ),
+                "totalReviews",
+              ],
+              [
+                sequelize.literal(
+                  `(SELECT AVG(reviews.rating) FROM reviews WHERE reviews.productId = product.id)`
+                ),
+                "avgRating",
+              ],
             ],
             limit,
           });
 
-          result.relatedProducts = relatedProducts.filter((related) => related.id !== product.id);
+          result.relatedProducts = relatedProducts.filter(
+            (related) => related.id !== product.id
+          );
         }
       }
 
@@ -286,16 +338,30 @@ module.exports = {
       //1. stock = new stock + repack sisa
       // 2. stock in unit = stock x volume
 
-      if (productData.volume !== oldData.volume && productData.stock !== oldData.stock) {
+      if (
+        productData.volume !== oldData.volume &&
+        productData.stock !== oldData.stock
+      ) {
         productData = {
           ...productData,
-          stock: productData.stock + Math.floor((oldData.stock_in_unit - oldData.stock * oldData.volume) / productData.volume),
-          stock_in_unit: productData.stock * productData.volume + (oldData.stock_in_unit - oldData.stock * oldData.volume),
+          stock:
+            productData.stock +
+            Math.floor(
+              (oldData.stock_in_unit - oldData.stock * oldData.volume) /
+                productData.volume
+            ),
+          stock_in_unit:
+            productData.stock * productData.volume +
+            (oldData.stock_in_unit - oldData.stock * oldData.volume),
         };
       } else if (productData.volume !== oldData.volume) {
-        productData.stock = Math.floor(oldData.stock_in_unit / productData.volume);
+        productData.stock = Math.floor(
+          oldData.stock_in_unit / productData.volume
+        );
       } else if (productData.stock !== oldData.stock) {
-        productData.stock_in_unit = productData.stock * productData.volume + (oldData.stock_in_unit - oldData.stock * oldData.volume);
+        productData.stock_in_unit =
+          productData.stock * productData.volume +
+          (oldData.stock_in_unit - oldData.stock * oldData.volume);
       }
 
       if (req.file) {
@@ -309,7 +375,7 @@ module.exports = {
       if (req.file) {
         fs.unlinkSync(oldData.image);
       }
-      res.status(200).send('Product edited successfully!');
+      res.status(200).send("Product edited successfully!");
     } catch (error) {
       console.log(error);
       res.status(500).send(error);
@@ -319,7 +385,7 @@ module.exports = {
     try {
       await Product.destroy({ where: { id: req.params.id } });
 
-      res.status(200).send('Product deleted successfully!');
+      res.status(200).send("Product deleted successfully!");
     } catch (err) {
       res.status(500).send(err);
     }
@@ -329,7 +395,7 @@ module.exports = {
       await Product.restore({
         where: { id: req.params.id },
       });
-      res.status(200).send('Product recovered successfully!');
+      res.status(200).send("Product recovered successfully!");
     } catch (error) {
       res.status(500).send(error);
     }
