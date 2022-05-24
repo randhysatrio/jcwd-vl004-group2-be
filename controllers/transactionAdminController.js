@@ -238,7 +238,7 @@ module.exports = {
           to: 'user',
           adminId: id,
           header: `Payment Rejected for Invoice #${transaction.id}`,
-          content: `Dear, ${transaction.user.name}|We're sorry to inform you that we have rejected the payment you've made for Invoice #${transaction.id}.|Furthermore, in line with our applied terms and conditions, you will received your money back in 1x24h time. If you have any questions do not hesitate to send us an email at admin@heizenbergco.com|Regards,`,
+          content: `Dear ${transaction.user.name},|We're sorry to inform you that we have rejected the payment you've made for Invoice #${transaction.id}.|Furthermore, in line with our applied terms and conditions, you will received your money back in 1x24h time. If you have any questions do not hesitate to send us an email at admin@heizenbergco.com|Regards,`,
         });
 
         const invoicePdfPath = await generatePdf(transaction);
@@ -249,7 +249,7 @@ module.exports = {
             to: `${transaction.user.email}`,
             subject: `Payment Rejected for Invoice #${transaction.id}`,
             html: `
-            <p>Dear, ${transaction.user.name}</p>
+            <p>Dear ${transaction.user.name},</p>
             <br/>
             <p>We're sorry to inform you that we have rejected the payment you've made for Invoice #${transaction.id}.</p>
             <P>Furthermore, in line with our applied terms and conditions, you will received your money back in 1x24h time.</p>
