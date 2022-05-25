@@ -5,6 +5,12 @@ module.exports = {
     try {
       const { limit, data, currentPage } = req.body;
 
+      const totalAddress = await Address.count({ where: { userId: req.user.id } });
+
+      if (totalAddress >= 10) {
+        return res.send({ conflict: 'Cannot have more than 10 addresses' });
+      }
+
       const existingAddress = await Address.findOne({ where: { ...data, userId: req.user.id } });
 
       if (existingAddress) {
