@@ -119,9 +119,23 @@ module.exports = {
     try {
       const { address, city, province, country, postalcode } = req.body;
 
+      const totalAddress = await Address.count({ where: { userId: req.user.id } });
+
+      if (totalAddress >= 10) {
+        return res.send({ conflict: 'Cannot have more than 10 addresses' });
+      }
+
       const existingAddress = await Address.findOne({
-        where: { ...req.body, userId: req.user.id },
+        where: {
+          address,
+          city,
+          country,
+          province,
+          postalcode,
+          userId: req.user.id,
+        },
       });
+
       const defaultAddress = await Address.findOne({
         where: { userId: req.user.id, is_default: true },
       });

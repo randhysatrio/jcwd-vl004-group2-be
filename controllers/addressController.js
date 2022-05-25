@@ -5,10 +5,25 @@ module.exports = {
     try {
       const { limit, data, currentPage } = req.body;
 
-      const existingAddress = await Address.findOne({ where: { ...data, userId: req.user.id } });
+      const totalAddress = await Address.count({ where: { userId: req.user.id } });
+
+      if (totalAddress >= 10) {
+        return res.send({ conflict: 'Cannot have more than 10 addresses' });
+      }
+
+      const existingAddress = await Address.findOne({
+        where: {
+          address: data.address,
+          city: data.city,
+          country: data.country,
+          province: data.province,
+          postalcode: data.postalcode,
+          userId: req.user.id,
+        },
+      });
 
       if (existingAddress) {
-        return res.send({ conflict: 'This address already exist!' });
+        return res.send({ conflict: 'This address already exist' });
       }
 
       if (data.is_default) {
