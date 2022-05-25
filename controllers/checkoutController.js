@@ -126,7 +126,14 @@ module.exports = {
       }
 
       const existingAddress = await Address.findOne({
-        where: { ...req.body, userId: req.user.id },
+        where: {
+          address,
+          city,
+          country,
+          province,
+          postalcode,
+          userId: req.user.id,
+        },
       });
 
       const defaultAddress = await Address.findOne({
