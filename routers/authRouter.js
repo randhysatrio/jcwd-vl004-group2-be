@@ -1,6 +1,6 @@
+require('dotenv').config();
 const router = require('express').Router();
 const passport = require('passport');
-const CLIENT_URL = 'http://localhost:3000/';
 const { createToken, verifyToken, verifyPasswordToken, verifyVerificationToken } = require('../configs/jwtuser');
 const Cart = require('../models/Cart');
 
@@ -18,7 +18,7 @@ router.get('/google', passport.authenticate('google'));
 router.get(
   '/google/callback',
   passport.authenticate('google', {
-    successRedirect: CLIENT_URL,
+    successRedirect: process.env.CLIENT_URL,
     failureRedirect: '/login/failed',
   })
 );
@@ -51,7 +51,7 @@ router.get('/login/failed', (req, res) => {
 
 router.get('/logout', (req, res) => {
   req.logOut();
-  res.redirect(CLIENT_URL);
+  res.redirect(process.env.CLIENT_URL);
 });
 
 module.exports = router;
