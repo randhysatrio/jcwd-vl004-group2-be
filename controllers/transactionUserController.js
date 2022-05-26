@@ -219,8 +219,8 @@ module.exports = {
       );
 
       if (expiredInvoices.length) {
-        const expiredTime = rows.filter((invoice) => Date.now() > addDays(new Date(invoice.createdAt), 1));
-        const expiredProduct = rows.filter((invoice) => invoice.invoiceitems.some((item) => item.product.deletedAt));
+        const expiredTime = expiredInvoices.filter((invoice) => Date.now() > addDays(new Date(invoice.createdAt), 1));
+        const expiredProduct = expiredInvoices.filter((invoice) => invoice.invoiceitems.some((item) => item.product.deletedAt));
 
         if (expiredTime.length && expiredProduct.length) {
           expiredInvoices.forEach((invoice) => {

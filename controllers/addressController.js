@@ -102,7 +102,7 @@ module.exports = {
         order: [['is_default', 'desc']],
       });
 
-      res.status(200).send({ rows, maxPage: Math.ceil(count / limit) || 1, count });
+      res.status(200).send({ message: 'Default address changed!', rows, maxPage: Math.ceil(count / limit) || 1, count });
     } catch (err) {
       res.status(500).send(err);
     }
