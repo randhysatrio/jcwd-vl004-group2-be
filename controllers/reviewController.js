@@ -83,7 +83,7 @@ module.exports = {
         attributes: [[sequelize.literal(`(SELECT AVG(reviews.rating) FROM reviews WHERE reviews.productId = ${productId})`), 'score']],
       });
 
-      res.status(200).send({ message: 'Review updated successfully', review, avgRating: avgRating[0]?.getDataValue('score') || 0 });
+      res.status(200).send({ message: 'Review updated successfully!', review, avgRating: avgRating[0]?.getDataValue('score') || 0 });
     } catch (err) {
       res.status(500).send(err);
     }
