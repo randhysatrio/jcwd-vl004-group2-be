@@ -63,7 +63,7 @@ module.exports = {
           },
           {
             model: DeliveryOption,
-            attributes: ['name'],
+            attributes: ['name', 'cost'],
             required: true,
             paranoid: false,
           },
