@@ -45,11 +45,6 @@ module.exports = {
         limit,
         offset,
         appearance,
-        sort_price_sell,
-        sort_price_buy,
-        sort_volume,
-        sort_stock,
-        sort_stock_in_unit,
         gte,
         lte,
         between,
@@ -103,29 +98,12 @@ module.exports = {
       }
 
       if (sort) {
-        query.order = [sort.split(",")];
-      }
-
-      if (fromDashboardAdmin) {
-        query.order = [["createdAt", "DESC"]];
-
-        if (sort_price_sell) {
-          query.order = [sort_price_sell.split(",")];
-        }
-        if (sort_price_buy) {
-          query.order = [sort_price_buy.split(",")];
-        }
-
-        if (sort_stock_in_unit) {
-          query.order = [sort_stock_in_unit.split(",")];
-        }
-
-        if (sort_stock) {
-          query.order = [sort_stock.split(",")];
-        }
-
-        if (sort_volume) {
-          query.order = [sort_volume.split(",")];
+        if (sort === "total_sales,ASC") {
+          query.order = [[sequelize.literal("total_sales"), "ASC"]];
+        } else if (sort === "total_sales,DESC") {
+          query.order = [[sequelize.literal("total_sales"), "DESC"]];
+        } else {
+          query.order = [sort.split(",")];
         }
       }
 
@@ -170,6 +148,12 @@ module.exports = {
               `(SELECT AVG(reviews.rating) FROM reviews WHERE reviews.productId = product.id)`
             ),
             "avgRating",
+          ],
+          [
+            sequelize.literal(
+              `(SELECT COUNT(invoiceitems.id) FROM invoiceitems WHERE invoiceitems.productId = product.id)`
+            ),
+            "total_sales",
           ],
         ],
         include: { model: Category, attributes: ["id", "name"] },
@@ -220,6 +204,40 @@ module.exports = {
               `(SELECT AVG(reviews.rating) FROM reviews WHERE reviews.productId = product.id)`
             ),
             "avgRating",
+          ],
+        ];
+        data.include = [{ model: Category, attributes: ["name"] }];
+      }
+
+      if (fromDashboardAdmin) {
+        data.attributes = [
+          "id",
+          "name",
+          "price_buy",
+          "price_sell",
+          "stock",
+          "unit",
+          "volume",
+          "stock_in_unit",
+          "image",
+          "appearance",
+          [
+            sequelize.literal(
+              `(SELECT COUNT(*) FROM reviews WHERE reviews.productId = product.id)`
+            ),
+            "totalReviews",
+          ],
+          [
+            sequelize.literal(
+              `(SELECT AVG(reviews.rating) FROM reviews WHERE reviews.productId = product.id)`
+            ),
+            "avgRating",
+          ],
+          [
+            sequelize.literal(
+              `(SELECT COUNT(invoiceitems.id) FROM invoiceitems WHERE invoiceitems.productId = product.id)`
+            ),
+            "total_sales",
           ],
         ];
         data.include = [{ model: Category, attributes: ["name"] }];
