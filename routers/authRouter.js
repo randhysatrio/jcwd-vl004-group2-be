@@ -26,6 +26,8 @@ router.get(
 router.get('/login/success', async (req, res) => {
   if (req.user) {
     if (!req.user.active) {
+      req.session = null;
+
       res.send({ conflict: true, message: 'This account is currently inactive!' });
     } else {
       const token = createToken({

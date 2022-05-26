@@ -97,6 +97,10 @@ module.exports = {
 
       const userData = await User.findByPk(id);
 
+      if (!userData.active) {
+        return res.send({ conflict: true, message: 'This account is currently inactive!' });
+      }
+
       const token = createToken({
         id: userData.id,
         name: userData.name,

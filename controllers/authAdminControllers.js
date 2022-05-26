@@ -12,7 +12,12 @@ module.exports = {
         where: {
           email,
         },
+        paranoid: false,
       });
+
+      if (response.deletedAt) {
+        return res.send({ conflict: true, message: 'This account is already deactivated!' });
+      }
 
       res.status(200).send({ data: response, message: response.message });
     } catch (error) {
