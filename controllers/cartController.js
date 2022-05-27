@@ -98,7 +98,6 @@ module.exports = {
 
       const userCart = await Cart.findOne({
         where: { userId, productId },
-        include: Product,
       });
 
       if (userCart) {
@@ -106,8 +105,8 @@ module.exports = {
           return res.send({
             conflict: true,
             productData,
-            message: `Cannot update this item quantity as you already had ${userCart.quantity.toLocaleString('id')} ${
-              userCart.product.unit
+            message: `Cannot update this item quantity as you already had ${userCart.quantity.toLocaleString('id')}${
+              productData.unit
             } in your cart`,
           });
         } else {
@@ -122,7 +121,7 @@ module.exports = {
 
         const cartTotal = await Cart.count({ where: { userId } });
 
-        res.status(200).send({ message: 'Added this item to your cart!', productData, cartTotal });
+        res.status(201).send({ message: 'Added this item to your cart!', productData, cartTotal });
       }
     } catch (err) {
       res.status(500).send(err);
