@@ -79,7 +79,7 @@ module.exports = {
     try {
       const { productId, userId, quantity } = req.body;
 
-      const productData = await Product.findByPk(productId, { paranoid: false });
+      const productData = await Product.findByPk(productId, { attributes: { exclude: ['createdAt', 'updatedAt'] } }, { paranoid: false });
 
       if (productData.deletedAt) {
         return res.send({
@@ -102,10 +102,11 @@ module.exports = {
       });
 
       if (userCart) {
-        if (userCart.quantity + quantity > userCart.product.stock_in_unit) {
+        if (userCart.quantity + quantity > productData.stock_in_unit) {
           return res.send({
             conflict: true,
-            message: `Cannot update this cart item quantity as you already had ${userCart.quantity.toLocaleString('id')} ${
+            productData,
+            message: `Cannot update this item quantity as you already had ${userCart.quantity.toLocaleString('id')} ${
               userCart.product.unit
             } in your cart`,
           });
@@ -114,16 +115,14 @@ module.exports = {
 
           await userCart.save();
 
-          const cartTotal = await Cart.count({ where: { userId } });
-
-          res.status(200).send({ message: 'Updated cart item quantity!', cartTotal });
+          res.status(200).send({ message: 'Updated this item quantity!', productData });
         }
       } else {
         await Cart.create({ userId, productId, quantity });
 
         const cartTotal = await Cart.count({ where: { userId } });
 
-        res.status(200).send({ message: 'Added this item to your cart!', cartTotal });
+        res.status(200).send({ message: 'Added this item to your cart!', productData, cartTotal });
       }
     } catch (err) {
       res.status(500).send(err);
