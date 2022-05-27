@@ -1,5 +1,6 @@
 const Cart = require('../models/Cart');
 const Product = require('../models/Product');
+const Category = require('../models/Category');
 const sequelize = require('../configs/sequelize');
 const { Op } = require('sequelize');
 
@@ -79,7 +80,11 @@ module.exports = {
     try {
       const { productId, userId, quantity } = req.body;
 
-      const productData = await Product.findByPk(productId, { attributes: { exclude: ['createdAt', 'updatedAt'] }, paranoid: false });
+      const productData = await Product.findByPk(productId, {
+        attributes: { exclude: ['createdAt', 'updatedAt'] },
+        include: { model: Category, attributes: ['name'] },
+        paranoid: false,
+      });
 
       if (productData.deletedAt) {
         return res.send({
