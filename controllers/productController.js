@@ -165,6 +165,7 @@ module.exports = {
           'image',
           'description',
           'price_sell',
+          'stock',
           'stock_in_unit',
           'volume',
           'unit',
