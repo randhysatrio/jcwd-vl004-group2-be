@@ -219,7 +219,6 @@ module.exports = {
 
       res.status(200).send({ products: rows, length: count });
     } catch (err) {
-      console.log(err);
       res.status(500).send(err);
     }
   },
