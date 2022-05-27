@@ -79,7 +79,7 @@ module.exports = {
     try {
       const { productId, userId, quantity } = req.body;
 
-      const productData = await Product.findByPk(productId, { attributes: { exclude: ['createdAt', 'updatedAt'] } }, { paranoid: false });
+      const productData = await Product.findByPk(productId, { attributes: { exclude: ['createdAt', 'updatedAt'] }, paranoid: false });
 
       if (productData.deletedAt) {
         return res.send({
