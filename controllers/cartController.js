@@ -79,11 +79,11 @@ module.exports = {
     try {
       const { productId, userId, quantity } = req.body;
 
-      const productData = await Product.findByPk(productId);
+      const productData = await Product.findByPk(productId, { paranoid: false });
 
       if (productData.deletedAt) {
         return res.send({
-          conflict: true,
+          deleted: true,
           message: `This product has already been removed from store!`,
         });
       }
@@ -91,6 +91,7 @@ module.exports = {
       if (productData.stock_in_unit < quantity) {
         return res.send({
           conflict: true,
+          productData,
           message: `Current stock insufficient!`,
         });
       }
