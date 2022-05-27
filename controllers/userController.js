@@ -54,7 +54,7 @@ module.exports = {
   },
   query: async (req, res) => {
     try {
-      const { active, limit, offset } = req.body;
+      const { active, limit, offset, sort } = req.body;
 
       const query = {
         limit,
@@ -71,6 +71,10 @@ module.exports = {
             phone_number: { [Op.substring]: keyword },
           },
         };
+      }
+
+      if (sort) {
+        query.order = [sort.split(",")];
       }
 
       if (offset) {
