@@ -139,7 +139,13 @@ module.exports = {
           'appearance',
           [sequelize.literal(`(SELECT COUNT(*) FROM reviews WHERE reviews.productId = product.id)`), 'totalReviews'],
           [sequelize.literal(`(SELECT AVG(reviews.rating) FROM reviews WHERE reviews.productId = product.id)`), 'avgRating'],
-          [sequelize.literal(`(SELECT COUNT(invoiceitems.id) FROM invoiceitems WHERE invoiceitems.productId = product.id)`), 'total_sales'],
+          [
+            sequelize.literal(
+              `(SELECT COUNT(*) FROM invoiceitems AS invoiceitem JOIN invoiceheaders AS invoiceheader ON invoiceheader.id = invoiceitem.invoiceheaderId WHERE invoiceheader.status = 'approved' AND invoiceitem.productId = product.id)`
+            ),
+            'total_sales',
+          ],
+          ,
         ],
       };
 
@@ -154,7 +160,12 @@ module.exports = {
           'unit',
           [sequelize.literal(`(SELECT COUNT(*) FROM reviews WHERE reviews.productId = product.id)`), 'totalReviews'],
           [sequelize.literal(`(SELECT AVG(reviews.rating) FROM reviews WHERE reviews.productId = product.id)`), 'avgRating'],
-          [sequelize.literal(`(SELECT COUNT(invoiceitems.id) FROM invoiceitems WHERE invoiceitems.productId = product.id)`), 'total_sales'],
+          [
+            sequelize.literal(
+              `(SELECT COUNT(*) FROM invoiceitems AS invoiceitem JOIN invoiceheaders AS invoiceheader ON invoiceheader.id = invoiceitem.invoiceheaderId WHERE invoiceheader.status = 'approved' AND invoiceitem.productId = product.id)`
+            ),
+            'total_sales',
+          ],
         ];
       }
 
@@ -189,7 +200,12 @@ module.exports = {
           'appearance',
           [sequelize.literal(`(SELECT COUNT(*) FROM reviews WHERE reviews.productId = product.id)`), 'totalReviews'],
           [sequelize.literal(`(SELECT AVG(reviews.rating) FROM reviews WHERE reviews.productId = product.id)`), 'avgRating'],
-          [sequelize.literal(`(SELECT COUNT(invoiceitems.id) FROM invoiceitems WHERE invoiceitems.productId = product.id)`), 'total_sales'],
+          [
+            sequelize.literal(
+              `(SELECT COUNT(*) FROM invoiceitems AS invoiceitem JOIN invoiceheaders AS invoiceheader ON invoiceheader.id = invoiceitem.invoiceheaderId WHERE invoiceheader.status = 'approved' AND invoiceitem.productId = product.id)`
+            ),
+            'total_sales',
+          ],
         ];
         data.include = [{ model: Category, attributes: ['name'] }];
       }
@@ -203,6 +219,7 @@ module.exports = {
 
       res.status(200).send({ products: rows, length: count });
     } catch (err) {
+      console.log(err);
       res.status(500).send(err);
     }
   },
