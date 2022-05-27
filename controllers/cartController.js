@@ -96,28 +96,27 @@ module.exports = {
       if (productData.stock_in_unit < quantity) {
         return res.send({
           conflict: true,
-          productData,
           message: `Current stock insufficient!`,
+          productData,
         });
       }
 
       const userCart = await Cart.findOne({
         where: { userId, productId },
+        attributes: ['id', 'quantity'],
       });
 
       if (userCart) {
         if (userCart.quantity + quantity > productData.stock_in_unit) {
           return res.send({
             conflict: true,
-            productData,
             message: `Cannot update this item quantity as you already had ${userCart.quantity.toLocaleString('id')}${
               productData.unit
             } in your cart`,
+            productData,
           });
         } else {
-          userCart.quantity = userCart.quantity + quantity;
-
-          await userCart.save();
+          await Cart.increment({ quantity }, { where: { id: userCart.id } });
 
           res.status(200).send({ message: 'Updated this item quantity!', productData });
         }
