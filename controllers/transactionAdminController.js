@@ -46,6 +46,8 @@ module.exports = {
             notes: { [Op.substring]: keyword },
             '$user.name$': { [Op.substring]: keyword },
             '$address.address$': { [Op.substring]: keyword },
+            "$address.city$": { [Op.substring]: keyword },
+            "$address.province$": { [Op.substring]: keyword },
             '$deliveryoption.name$': { [Op.substring]: keyword },
           },
         };
