@@ -165,6 +165,10 @@ module.exports = {
     try {
       const userData = await User.findByPk(req.user.id);
 
+      if (userData.is_verified === 'verified') {
+        return res.send({ conflict: 'This account has already been verified' });
+      }
+
       userData.is_verified = 'verified';
 
       await userData.save();
